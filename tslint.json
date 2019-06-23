@@ -1,0 +1,23 @@
+{
+  "extends": ["tslint:latest", "tslint-config-prettier"],
+  "linterOptions": {
+    "exclude": ["package.json"]
+  },
+  "rules": {
+    "max-line-length": [
+      true,
+      { "limit": 140, "ignore-pattern": "^import |^export {(.*?)}" }
+    ],
+
+    "interface-name": [true, "never-prefix"],
+    // TODO: allow devDependencies only in **/*.spec.ts files:
+    // waiting on https://github.com/palantir/tslint/pull/3708
+    "no-implicit-dependencies": [true, "dev"],
+
+    // Recommended built-in rules
+    "no-var-keyword": true,
+    "no-parameter-reassignment": true,
+    "typedef": [true, "call-signature"],
+    "ordered-imports": false
+  }
+}
