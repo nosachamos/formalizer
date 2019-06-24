@@ -105,6 +105,7 @@
     "prettier": "^1.15.2",
     "pretty-quick": "^1.10.0",
     "react": "^16.8.6",
+    "react-dom": "^16.8.6",
     "snyk": "^1.134.1",
     "source-map-loader": "0.2.3",
     "standard-version": "^4.4.0",
