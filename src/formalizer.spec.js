@@ -25,28 +25,28 @@ describe('Form Validation', () => {
   beforeAll(async () => {
     // formElement = shallow(testForm);
   });
-
-  it(`Errors when invalid email value is given`, () => {
-    const onSubmitHandler = jest.fn();
-
-    const formElement = mount(
-      <TestForm
-        onSubmit={onSubmitHandler}
-        validation={{
-          field1: field1Validation,
-          field2: field2Validation
-        }}
-      />
-    );
-
-    formElement.find('button').simulate('click');
-    formElement.update();
-
-    expect(formElement.find('#field1Error').text()).toEqual(
-      FIELD_REQUIRED_MESSAGE
-    );
-    expect(formElement.find('#field2Error').text()).toEqual(
-      FIELD_REQUIRED_MESSAGE
-    );
-  });
+  //
+  // it(`Errors when invalid email value is given`, () => {
+  //   const onSubmitHandler = jest.fn();
+  //
+  //   const formElement = mount(
+  //     <TestForm
+  //       onSubmit={onSubmitHandler}
+  //       validation={{
+  //         field1: field1Validation,
+  //         field2: field2Validation
+  //       }}
+  //     />
+  //   );
+  //
+  //   formElement.find('button').simulate('click');
+  //   formElement.update();
+  //
+  //   expect(formElement.find('#field1Error').text()).toEqual(
+  //     FIELD_REQUIRED_MESSAGE
+  //   );
+  //   expect(formElement.find('#field2Error').text()).toEqual(
+  //     FIELD_REQUIRED_MESSAGE
+  //   );
+  // });
 });
