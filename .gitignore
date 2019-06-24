@@ -4,9 +4,11 @@
 /node_modules
 /.pnp
 .pnp.js
+.rpt2_cache
 /example-app/node_modules
 /example-app/.pnp
 /example-app/.pnp.js
+/example-app/.rpt2_cache
 
 # testing
 /coverage
