@@ -2,9 +2,8 @@
   "name": "formalizer",
   "version": "1.0.0-alpha.0",
   "description": "React hooks based form validation made for humans.",
-  "main": "build/main/index.js",
-  "typings": "build/main/index.d.ts",
-  "module": "build/module/index.js",
+  "main": "build/index.js",
+  "typings": "build/index.d.ts",
   "repository": "https://github.com/nosachamos/formalizer",
   "license": "MIT",
   "keywords": [
@@ -17,14 +16,15 @@
     "usable"
   ],
   "files": [
-    "dist"
+    "build"
   ],
   "scripts": {
     "describe": "npm-scripts-info",
-    "clean": "rm -rf build && rm -rf test",
-    "build": "run-s clean && run-p build:*",
-    "build:main": "tsc -p tsconfig.json && webpack --config webpack.config.js -p",
-    "build:module": "tsc -p tsconfig.module.json && webpack --config webpack.module.config.js -p",
+    "clean": "rm -rf build && rm -rf test && rm -rf .tmp",
+    "build": "run-s clean && npm run build:ts && npm run build:js && npm run build:copy-types",
+    "build:ts": "tsc -p tsconfig.json",
+    "build:js": "webpack --config webpack.config.js -p && webpack --config webpack.min.config.js -p",
+    "build:copy-types": "cp .tmp/*.d.ts build",
     "prepare": "run-s prepare:*",
     "prepare:generate-barrels": "barrelsby --directory src --singleQuotes --delete",
     "prepare:generate-changelog": "auto-changelog -p",
@@ -90,6 +90,7 @@
     "jest": "^23.6.0",
     "jest-config": "^23.6.0",
     "npm-run-all": "^4.1.5",
+    "react": "^16.8.6",
     "npm-scripts-info": "^0.3.9",
     "opn-cli": "^4.0.0",
     "prettier": "^1.15.2",
@@ -106,9 +107,9 @@
     "tslint-loader": "3.6.0",
     "typedoc": "^0.13.0",
     "typescript": "^3.5.2",
+    "uglifyjs-webpack-plugin": "^2.1.3",
     "webpack": "4.12.0",
     "webpack-cli": "^3.0.8",
-    "webpack-closure-compiler": "^2.1.6",
     "webpack-dev-server": "3.1.4"
   },
   "jest": {
@@ -121,6 +122,9 @@
       "ts",
       "tsx",
       "js"
+    ],
+    "testPathIgnorePatterns": [
+      "/example-app/"
     ],
     "coveragePathIgnorePatterns": [
       "/node_modules/",
