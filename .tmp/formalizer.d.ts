@@ -1,19 +1,19 @@
 import { Dispatch, FormEvent, SetStateAction, RefObject } from 'react';
-interface ValidatorSettings {
+interface ValidatorSettingsType {
   invalidAttr?: {
     error: boolean;
   };
   invalidHelperTextAttr?: string;
 }
-export declare const GLOBAL_VALIDATOR_SETTINGS: ValidatorSettings;
+export declare const ValidatorSettings: ValidatorSettingsType;
 export declare const ValidatorDefaults: {
-  [key: string]: Formalizer | string;
+  [key: string]: InputValidationConfigs | string;
 };
 declare type ValidatorFunction = (
   value: any,
   options: object | undefined
 ) => boolean;
-interface Formalizer {
+interface InputValidationConfigs {
   errorMessage?: string;
   negate?: boolean;
   options?: object;
@@ -28,8 +28,8 @@ declare type FormSubmitHandler = (
     [ley: string]: any;
   }
 ) => boolean;
-interface ValidationConfigs {
-  [key: string]: Formalizer;
+interface FormValidationConfigs {
+  [key: string]: InputValidationConfigs;
 }
 declare type ValidationErrorUpdater = (
   name: string,
@@ -41,7 +41,7 @@ interface FormInputParams {
   formHandler: [FormData, Dispatch<SetStateAction<FormData>>];
   updateError: ValidationErrorUpdater;
   invalidAttr?: object;
-  validation: ValidationConfigs;
+  validation: FormValidationConfigs;
   helperTextAttr?: string;
 }
 interface InputAttributes {
@@ -81,7 +81,7 @@ export declare const useForm: (
   setValues: Dispatch<SetStateAction<FormData>>;
   useInput: (
     name: string,
-    validationConfigs: ValidationConfigs
+    validationConfigs: FormValidationConfigs
   ) => InputAttributes;
   validateForm: () => boolean;
 };
@@ -94,7 +94,7 @@ export declare const useForm: (
 export declare const validate: (
   value: any,
   validation: {
-    [key: string]: string | Formalizer;
+    [key: string]: string | InputValidationConfigs;
   }
 ) => (string | undefined)[] | null;
 export {};

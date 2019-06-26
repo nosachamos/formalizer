@@ -15,7 +15,7 @@ var __assign =
   };
 import { useCallback, useEffect, useRef, useState } from 'react';
 import validator from 'validator';
-export var GLOBAL_VALIDATOR_SETTINGS = {
+export var ValidatorSettings = {
   invalidAttr: { error: true },
   invalidHelperTextAttr: undefined
 };
@@ -118,10 +118,10 @@ export var useForm = function(
   helperTextAttr
 ) {
   if (invalidAttr === void 0) {
-    invalidAttr = GLOBAL_VALIDATOR_SETTINGS.invalidAttr;
+    invalidAttr = ValidatorSettings.invalidAttr;
   }
   if (helperTextAttr === void 0) {
-    helperTextAttr = GLOBAL_VALIDATOR_SETTINGS.invalidHelperTextAttr;
+    helperTextAttr = ValidatorSettings.invalidHelperTextAttr;
   }
   var formHandler = useState(defaultValues);
   var errorHandler = useState({});

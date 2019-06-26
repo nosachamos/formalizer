@@ -33,30 +33,32 @@ ValidatorDefaults.startsWithLetterZ = {
     validator: (value) => value && value.length > 0 && value.charAt(0).toLowerCase() === 'z';
 };
 
-GLOBAL_VALIDATOR_SETTINGS = {
+ValidatorSettings = {
     invalidAttr: { error: true },
     invalidHelperTextAttr: undefined
 }
 
 */
 
-interface ValidatorSettings {
+interface ValidatorSettingsType {
   invalidAttr?: { error: boolean };
   invalidHelperTextAttr?: string;
 }
 
-export const GLOBAL_VALIDATOR_SETTINGS: ValidatorSettings = {
+export const ValidatorSettings: ValidatorSettingsType = {
   invalidAttr: { error: true },
   invalidHelperTextAttr: undefined
 };
 
-export const ValidatorDefaults: { [key: string]: Formalizer | string } = {};
+export const ValidatorDefaults: {
+  [key: string]: InputValidationConfigs | string;
+} = {};
 
 const DEFAULT_ERROR_MESSAGE = 'This field is not valid.';
 
 type ValidatorFunction = (value: any, options: object | undefined) => boolean;
 
-interface Formalizer {
+interface InputValidationConfigs {
   errorMessage?: string;
   negate?: boolean;
   options?: object;
@@ -72,8 +74,8 @@ type FormSubmitHandler = (
   formValues: { [ley: string]: any }
 ) => boolean;
 
-interface ValidationConfigs {
-  [key: string]: Formalizer;
+interface FormValidationConfigs {
+  [key: string]: InputValidationConfigs;
 }
 
 type ValidationErrorUpdater = (
@@ -87,7 +89,7 @@ interface FormInputParams {
   formHandler: [FormData, Dispatch<SetStateAction<FormData>>];
   updateError: ValidationErrorUpdater;
   invalidAttr?: object;
-  validation: ValidationConfigs;
+  validation: FormValidationConfigs;
   helperTextAttr?: string;
 }
 
@@ -191,8 +193,8 @@ export const useForm = (
   formRef: RefObject<HTMLFormElement>,
   defaultValues: FormData,
   handleSubmit: FormSubmitHandler,
-  invalidAttr = GLOBAL_VALIDATOR_SETTINGS.invalidAttr,
-  helperTextAttr = GLOBAL_VALIDATOR_SETTINGS.invalidHelperTextAttr
+  invalidAttr = ValidatorSettings.invalidAttr,
+  helperTextAttr = ValidatorSettings.invalidHelperTextAttr
 ) => {
   const formHandler = useState(defaultValues);
   const errorHandler = useState<{ [key: string]: string }>({});
@@ -231,7 +233,7 @@ export const useForm = (
     [key: string]: { [key: string]: InputAttributes };
   }>({});
 
-  const useInput = (name: string, validationConfigs: ValidationConfigs) => {
+  const useInput = (name: string, validationConfigs: FormValidationConfigs) => {
     const inputAttr = useFormInput({
       formHandler,
       helperTextAttr,
@@ -328,9 +330,9 @@ export const useForm = (
  */
 export const validate = (
   value: any,
-  validation: { [key: string]: Formalizer | string }
+  validation: { [key: string]: InputValidationConfigs | string }
 ) => {
-  const fieldsToValidate: { [key: string]: Formalizer } = {};
+  const fieldsToValidate: { [key: string]: InputValidationConfigs } = {};
 
   Object.keys(validation).forEach(property => {
     let options = {};
@@ -347,7 +349,9 @@ export const validate = (
         errorMessage = ValidatorDefaults[property] as string;
         negate = false;
       } else {
-        const propValidator = ValidatorDefaults[property] as Formalizer;
+        const propValidator = ValidatorDefaults[
+          property
+        ] as InputValidationConfigs;
 
         if (typeof propValidator.validator === 'string') {
           validatorFunction = validator[propValidator.validator];
@@ -406,7 +410,7 @@ export const validate = (
       return;
     }
 
-    const configs: Formalizer = fieldsToValidate[property];
+    const configs: InputValidationConfigs = fieldsToValidate[property];
 
     switch (property) {
       case 'isRequired':
