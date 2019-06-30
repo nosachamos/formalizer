@@ -33,7 +33,7 @@
     "prepare:tslint": "tslint --fix --project .",
     "prepare:commit-changes": "git add --all && git commit -m \"chore(release): update changelog, fix linting, regenerate barrels\"",
     "test": "jest",
-    "test:coverage": "jest --coverage && cat ./tests/coverage/lcov.info | coveralls",
+    "test:coverage": "jest --coverage && cat ./coverage/lcov.info | coveralls",
     "test:watch": "jest --watch",
     "test-release": "run-s build test-release:*",
     "test-release:lint": "tslint --project . && prettier \"src/**/*.ts\" --list-different",
@@ -47,8 +47,7 @@
     "doc": "run-s doc:generate:html && opn build/docs/html/index.html",
     "doc:generate": "run-s doc:generate:*",
     "doc:generate:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs/html",
-    "doc:generate:json": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --json build/docs/json/typedoc.json",
-    "cov": "run-s build test:unit cov:html && opn coverage/index.html"
+    "doc:generate:json": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --json build/docs/json/typedoc.json"
   },
   "scripts-info": {
     "info": "Display information about the package scripts",

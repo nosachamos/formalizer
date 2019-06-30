@@ -1250,10 +1250,6 @@ describe('Form Validation', () => {
   });
 
   it(`Correct error is thrown when user-provided submit handler throws an exception`, () => {
-    //spyOn(console, 'error'); // prevents React 16 error boundary warning
-    // let spy = {};
-    // spy.console = jest.spyOn(console, 'error').mockImplementation(() => {});
-
     window.onerror = jest.fn();
     const errorSpy = jest.spyOn(window, 'onerror').mockImplementation(() => {});
 
