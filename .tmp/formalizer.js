@@ -19,13 +19,15 @@ export var ValidatorSettings = {
   invalidAttr: { error: true },
   invalidHelperTextAttr: undefined
 };
-export var ValidatorDefaults = {};
-var DEFAULT_ERROR_MESSAGE = 'This field is not valid.';
+export var ValidatorDefaults = {
+  isRequired: 'This field is required.'
+};
+export var DEFAULT_VALIDATION_ERROR_MESSAGE = 'This field is not valid.';
 export var useFormInput = function(_a) {
   var name = _a.name,
     formHandler = _a.formHandler,
     _b = _a.validation,
-    validation = _b === void 0 ? {} : _b,
+    validation = _b === void 0 ? [] : _b,
     updateError = _a.updateError,
     _c = _a.invalidAttr,
     invalidAttr = _c === void 0 ? {} : _c,
@@ -47,15 +49,29 @@ export var useFormInput = function(_a) {
     setHelperText = _g[1];
   var handleValidation = useCallback(
     function(inputValue) {
-      var result = validate(inputValue, validation);
-      setIsValid(!result);
-      if (result) {
-        var unmetRuleKey = result[0],
-          errorMessage = result[1];
-        setHelperText(errorMessage);
-        updateError(name, unmetRuleKey, errorMessage);
-      } else {
-        updateError(name);
+      var _a;
+      for (
+        var _i = 0, validation_1 = validation;
+        _i < validation_1.length;
+        _i++
+      ) {
+        var v = validation_1[_i];
+        var validationConfig = void 0;
+        // if this is a string the user has just requested a validation by name, such as `isRequired`. Otherwise, user
+        // has provided a validation config, so use that.
+        validationConfig =
+          typeof v === 'string' ? ((_a = {}), (_a[v] = {}), _a) : v;
+        var result = validate(inputValue, validationConfig);
+        setIsValid(!result);
+        if (result) {
+          var unmetRuleKey = result[0],
+            errorMessage = result[1];
+          setHelperText(errorMessage);
+          updateError(name, unmetRuleKey, errorMessage);
+          break; // stop on the first error - we only show one at a time.
+        } else {
+          updateError(name);
+        }
       }
     },
     [name, validation, updateError]
@@ -75,6 +91,10 @@ export var useFormInput = function(_a) {
     function() {
       if (isTouched) {
         handleValidation(value);
+      } else {
+        // if not touched, make sure the input is valid. This is needed when this effect is triggered due to a
+        // programmatic update to the form data, otherwise inputs that should now be valid won't get updated.
+        updateError(name);
       }
     },
     [value, isTouched, handleValidation]
@@ -154,6 +174,19 @@ export var useForm = function(
     }
   }
   var formInputsAttrs = useRef({});
+  var validateForm = function() {
+    if (formRef.current) {
+      var formInputsByName_1 =
+        formInputsAttrs.current[formRef.current.formValidationIdAttr];
+      // trigger validation on each of the form's inputs
+      if (formInputsByName_1) {
+        Object.keys(formInputsByName_1).forEach(function(inputName) {
+          return formInputsByName_1[inputName].onBlur();
+        });
+      }
+    }
+    return mounted && !Object.values(errors).length; // no errors found
+  };
   var useInput = function(name, validationConfigs) {
     var inputAttr = useFormInput({
       formHandler: formHandler,
@@ -172,17 +205,6 @@ export var useForm = function(
       ] = inputAttr;
     }
     return inputAttr;
-  };
-  var validateForm = function() {
-    if (formRef.current) {
-      var formInputsByName_1 =
-        formInputsAttrs.current[formRef.current.formValidationIdAttr];
-      // trigger validation on each of the form's inputs
-      Object.keys(formInputsByName_1).forEach(function(inputName) {
-        return formInputsByName_1[inputName].onBlur();
-      });
-    }
-    return mounted && !Object.values(errors).length; // no errors found
   };
   var formSubmitHandler = function(e) {
     // first validate the form
@@ -223,11 +245,16 @@ export var useForm = function(
     formRef.current.addEventListener('submit', formSubmitHandler);
     formRef.current.currentSubmitHandler = formSubmitHandler;
   }
+  // we proxy this set state call so that we can trigger a form validation once a new set of values has been set on the form.
+  var externalSetValues = function(formValues) {
+    setValues(formValues);
+    validateForm();
+  };
   return {
     errors: errors,
     formValues: values,
     isValid: mounted && !Object.values(errors).length,
-    setValues: setValues,
+    setValues: externalSetValues,
     useInput: useInput,
     validateForm: validateForm
   };
@@ -239,17 +266,17 @@ export var useForm = function(
  * @returns {*}
  */
 export var validate = function(value, validation) {
-  var fieldsToValidate = {};
+  var fieldsToValidate = [];
   Object.keys(validation).forEach(function(property) {
     var options = {};
-    var errorMessage = void 0;
-    var negate = void 0;
+    var errorMsg = DEFAULT_VALIDATION_ERROR_MESSAGE;
+    var negate = false;
     var validatorFunction = void 0;
     if (ValidatorDefaults[property]) {
       if (typeof ValidatorDefaults[property] === 'string') {
         // @ts-ignore
         validatorFunction = validator[ValidatorDefaults[property]];
-        errorMessage = ValidatorDefaults[property];
+        errorMsg = ValidatorDefaults[property];
         negate = false;
       } else {
         var propValidator = ValidatorDefaults[property];
@@ -262,51 +289,66 @@ export var validate = function(value, validation) {
             'The given validator must be either a string or a function.'
           );
         }
-        errorMessage = propValidator.errorMessage
-          ? propValidator.errorMessage
-          : DEFAULT_ERROR_MESSAGE;
+        if (propValidator.errorMessage) {
+          errorMsg = propValidator.errorMessage;
+        }
         negate = propValidator.negate === void 0 ? false : propValidator.negate;
         options = propValidator.options === void 0 ? {} : propValidator.options;
       }
     } else {
-      // @ts-ignore
-      validatorFunction = validator[property];
+      var valConfig = validation[property];
+      // if this is an empty object, user passed in just the string for a built in validator, which got converted to an
+      // empty object before validate was invoked.
+      if (Object.keys(valConfig).length === 0) {
+        validatorFunction = validator[property];
+      } else if (
+        typeof valConfig === 'object' &&
+        typeof valConfig.validator === 'string'
+      ) {
+        validatorFunction = validator[valConfig.validator];
+      }
     }
-    fieldsToValidate[property] = {
-      errorMessage: errorMessage,
-      negate: negate,
-      options: options,
-      validator: validatorFunction
-    };
+    fieldsToValidate.push({
+      key: property,
+      validation: {
+        errorMessage: errorMsg,
+        negate: negate,
+        options: options,
+        validator: validatorFunction
+      }
+    });
     if (typeof validation[property] === 'string') {
-      fieldsToValidate[property].errorMessage = validation[property];
-    } else if (typeof validation[property] === 'boolean') {
-      fieldsToValidate[property].negate = validation[property];
-    } else if (typeof validation[property] === 'function') {
-      fieldsToValidate[property].validator = validation[property];
+      fieldsToValidate[fieldsToValidate.length - 1].validation.errorMessage =
+        validation[property];
     } else if (typeof validation[property] === 'object') {
-      fieldsToValidate[property] = __assign(
+      if (typeof validation[property].validator === 'string') {
+        // this was resolved to a validator function, we can discard the string now.
+        delete validation[property].validator;
+      }
+      fieldsToValidate[fieldsToValidate.length - 1].validation = __assign(
         {},
-        fieldsToValidate[property],
+        fieldsToValidate[fieldsToValidate.length - 1].validation,
         validation[property]
       );
     }
   });
-  // check whether we do need to validate at all - no validation rules, no validation needed
-  if (fieldsToValidate.isEmpty) {
-    return null;
-  }
   var unmetValidationKey = void 0;
+  var errorMessage = void 0;
   var isValid = true;
-  Object.keys(fieldsToValidate).forEach(function(property) {
-    if (unmetValidationKey) {
-      return;
-    }
-    var configs = fieldsToValidate[property];
+  for (
+    var _i = 0, fieldsToValidate_1 = fieldsToValidate;
+    _i < fieldsToValidate_1.length;
+    _i++
+  ) {
+    var validationConfig = fieldsToValidate_1[_i];
+    var property = validationConfig.key;
+    var configs = validationConfig.validation;
     switch (property) {
       case 'isRequired':
-        if (!value) {
+        if (!value || value.trim().length === 0) {
+          isValid = false;
           unmetValidationKey = property;
+          errorMessage = validationConfig.validation.errorMessage;
         }
         break;
       default:
@@ -319,10 +361,9 @@ export var validate = function(value, validation) {
     }
     if (!isValid) {
       unmetValidationKey = property;
-      return;
+      errorMessage = validationConfig.validation.errorMessage;
+      break;
     }
-  });
-  return unmetValidationKey
-    ? [unmetValidationKey, fieldsToValidate[unmetValidationKey].errorMessage]
-    : null;
+  }
+  return isValid ? null : [unmetValidationKey, errorMessage];
 };

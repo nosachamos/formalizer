@@ -1,24 +1,26 @@
 import { Dispatch, FormEvent, SetStateAction, RefObject } from 'react';
 interface ValidatorSettingsType {
   invalidAttr?: {
-    error: boolean;
+    [key: string]: any;
   };
   invalidHelperTextAttr?: string;
 }
 export declare const ValidatorSettings: ValidatorSettingsType;
 export declare const ValidatorDefaults: {
-  [key: string]: InputValidationConfigs | string;
+  [key: string]: InputValidationConfig | string;
 };
+export declare const DEFAULT_VALIDATION_ERROR_MESSAGE =
+  'This field is not valid.';
 declare type ValidatorFunction = (
   value: any,
   options: object | undefined
 ) => boolean;
-interface InputValidationConfigs {
+declare type InputValidationConfig = {
   errorMessage?: string;
   negate?: boolean;
   options?: object;
   validator?: ValidatorFunction;
-}
+};
 interface FormData {
   [key: string]: any;
 }
@@ -28,9 +30,10 @@ declare type FormSubmitHandler = (
     [ley: string]: any;
   }
 ) => boolean;
-interface FormValidationConfigs {
-  [key: string]: InputValidationConfigs;
-}
+declare type InputValidationByKey = {
+  [key: string]: InputValidationConfig | string;
+};
+declare type InputValidation = InputValidationByKey | string;
 declare type ValidationErrorUpdater = (
   name: string,
   unmetRuleKey?: string,
@@ -41,7 +44,7 @@ interface FormInputParams {
   formHandler: [FormData, Dispatch<SetStateAction<FormData>>];
   updateError: ValidationErrorUpdater;
   invalidAttr?: object;
-  validation: FormValidationConfigs;
+  validation: InputValidation[];
   helperTextAttr?: string;
 }
 interface InputAttributes {
@@ -65,10 +68,10 @@ export declare const useFormInput: ({
 export declare const useForm: (
   formRef: RefObject<HTMLFormElement>,
   defaultValues: FormData,
-  handleSubmit: FormSubmitHandler,
+  handleSubmit?: FormSubmitHandler | undefined,
   invalidAttr?:
     | {
-        error: boolean;
+        [key: string]: any;
       }
     | undefined,
   helperTextAttr?: string | undefined
@@ -78,10 +81,10 @@ export declare const useForm: (
   };
   formValues: FormData;
   isValid: boolean;
-  setValues: Dispatch<SetStateAction<FormData>>;
+  setValues: (formValues: FormData) => void;
   useInput: (
     name: string,
-    validationConfigs: FormValidationConfigs
+    validationConfigs: InputValidation[]
   ) => InputAttributes;
   validateForm: () => boolean;
 };
@@ -93,8 +96,6 @@ export declare const useForm: (
  */
 export declare const validate: (
   value: any,
-  validation: {
-    [key: string]: string | InputValidationConfigs;
-  }
+  validation: InputValidationByKey
 ) => (string | undefined)[] | null;
 export {};

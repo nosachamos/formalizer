@@ -59,12 +59,12 @@ export const DEFAULT_VALIDATION_ERROR_MESSAGE = 'This field is not valid.';
 
 type ValidatorFunction = (value: any, options: object | undefined) => boolean;
 
-type InputValidationConfig = {
+interface InputValidationConfig {
   errorMessage?: string;
   negate?: boolean;
   options?: object;
   validator?: ValidatorFunction;
-};
+}
 
 interface FormData {
   [key: string]: any;
@@ -75,7 +75,9 @@ type FormSubmitHandler = (
   formValues: { [ley: string]: any }
 ) => boolean;
 
-type InputValidationByKey = { [key: string]: InputValidationConfig | string };
+interface InputValidationByKey {
+  [key: string]: InputValidationConfig | string;
+}
 
 type InputValidation = InputValidationByKey | string;
 
@@ -121,7 +123,7 @@ export const useFormInput = ({
 
   const handleValidation = useCallback(
     (inputValue: any) => {
-      for (let v of validation) {
+      for (const v of validation) {
         let validationConfig: InputValidationByKey | undefined = void 0;
 
         // if this is a string the user has just requested a validation by name, such as `isRequired`. Otherwise, user
@@ -352,10 +354,10 @@ export const useForm = (
  * @returns {*}
  */
 export const validate = (value: any, validation: InputValidationByKey) => {
-  const fieldsToValidate: {
+  const fieldsToValidate: Array<{
     key: string;
     validation: InputValidationConfig;
-  }[] = [];
+  }> = [];
 
   Object.keys(validation).forEach(property => {
     let options = {};
@@ -443,7 +445,7 @@ export const validate = (value: any, validation: InputValidationByKey) => {
   let errorMessage: string | undefined = void 0;
   let isValid = true;
 
-  for (let validationConfig of fieldsToValidate) {
+  for (const validationConfig of fieldsToValidate) {
     const property = validationConfig.key;
     const configs: InputValidationConfig = validationConfig.validation;
 

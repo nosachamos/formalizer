@@ -838,7 +838,6 @@ describe('Form Validation', () => {
     it(`Correct error is thrown when the given global validator of invalid type (${invalidValidatorDef.name})`, () => {
       const originalError = console.error;
       console.error = jest.fn(); // prevents React 16 error boundary warning
-      spyOn(console, 'error');
 
       ValidatorDefaults.invalidValidator = invalidValidatorDef;
 
