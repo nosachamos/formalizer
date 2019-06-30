@@ -837,7 +837,8 @@ describe('Form Validation', () => {
   ].forEach(invalidValidatorDef =>
     it(`Correct error is thrown when the given global validator of invalid type (${invalidValidatorDef.name})`, () => {
       const originalError = console.error;
-      spyOn(console, 'error'); // prevents React 16 error boundary warning
+      console.error = jest.fn(); // prevents React 16 error boundary warning
+      spyOn(console, 'error');
 
       ValidatorDefaults.invalidValidator = invalidValidatorDef;
 
@@ -1327,6 +1328,10 @@ describe('Form Validation', () => {
   });
 
   it('Custom error helper text is added to input', () => {
+    const originalError = console.error;
+    console.error = jest.fn(); // prevents React 16 error warning
+    spyOn(console, 'error');
+
     const FormWrapper = () => {
       const formRef = useRef(null);
       formInfo = useForm(
@@ -1361,6 +1366,8 @@ describe('Form Validation', () => {
       FIELD_REQUIRED_MESSAGE
     );
     expect(wrapper.find('#field2').prop('myHelperText')).not.toBeDefined();
+
+    console.error = originalError;
   });
 
   it('Fields are updated when form value is set programmatically', () => {
