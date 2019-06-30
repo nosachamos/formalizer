@@ -15,12 +15,12 @@ declare type ValidatorFunction = (
   value: any,
   options: object | undefined
 ) => boolean;
-declare type InputValidationConfig = {
+interface InputValidationConfig {
   errorMessage?: string;
   negate?: boolean;
   options?: object;
   validator?: ValidatorFunction;
-};
+}
 interface FormData {
   [key: string]: any;
 }
@@ -30,9 +30,9 @@ declare type FormSubmitHandler = (
     [ley: string]: any;
   }
 ) => boolean;
-declare type InputValidationByKey = {
+interface InputValidationByKey {
   [key: string]: InputValidationConfig | string;
-};
+}
 declare type InputValidation = InputValidationByKey | string;
 declare type ValidationErrorUpdater = (
   name: string,
