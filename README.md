@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/nosachamos/formalizer.svg?branch=master)](https://travis-ci.com/nosachamos/formalizer)
+[![Coverage Status](https://coveralls.io/repos/github/nosachamos/formalizer/badge.svg?branch=master)](https://coveralls.io/github/nosachamos/formalizer?branch=master)
 
 Formalizer is a React Hooks based form validation library made for humans. The cleanest code or your money back ;)
 
