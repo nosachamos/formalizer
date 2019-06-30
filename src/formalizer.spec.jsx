@@ -73,8 +73,6 @@ describe('Form Validation', () => {
   let submitHandler;
   let formInfo;
   beforeEach(() => {
-    jest.spyOn(window._virtualConsole, 'emit').mockImplementation(() => null);
-
     submitHandler = jest.fn();
     formInfo = null;
   });
@@ -835,6 +833,7 @@ describe('Form Validation', () => {
     }
   ].forEach(invalidValidatorDef =>
     it(`Correct error is thrown when the given global validator of invalid type (${invalidValidatorDef.name})`, () => {
+      const originalError = console.error;
       spyOn(console, 'error'); // prevents React 16 error boundary warning
 
       ValidatorDefaults.invalidValidator = invalidValidatorDef;
@@ -861,6 +860,8 @@ describe('Form Validation', () => {
       expect(callMount).toThrowError(
         new Error('The given validator must be either a string or a function.')
       );
+
+      console.error = originalError;
     })
   );
 

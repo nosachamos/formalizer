@@ -33,7 +33,7 @@
     "prepare:tslint": "tslint --fix --project .",
     "prepare:commit-changes": "git add --all && git commit -m \"chore(release): update changelog, fix linting, regenerate barrels\"",
     "test": "jest",
-    "test:coverage": "jest && codecov",
+    "test:coverage": "jest --coverage && codecov",
     "test:watch": "jest --watch",
     "test-release": "run-s build test-release:*",
     "test-release:lint": "tslint --project . && prettier \"src/**/*.ts\" --list-different",
@@ -145,15 +145,7 @@
       "js",
       "jsx"
     ],
-    "testPathIgnorePatterns": [
-      "/example-app/"
-    ],
-    "coveragePathIgnorePatterns": [
-      "/node_modules/",
-      "/example-app/",
-      "/build/",
-      "/tmp/"
-    ],
+
     "coverageThreshold": {
       "global": {
         "branches": 90,
@@ -163,7 +155,6 @@
       }
     },
     "coverageDirectory": "./coverage/",
-    "collectCoverage": true,
     "collectCoverageFrom": [
       "src/*.{js,ts}"
     ]
