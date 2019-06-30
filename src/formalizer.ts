@@ -121,16 +121,12 @@ export const useFormInput = ({
 
   const handleValidation = useCallback(
     (inputValue: any) => {
-      for (let i = 0; i < validation.length; i++) {
-        const v = validation[i];
+      for (let v of validation) {
         let validationConfig: InputValidationByKey | undefined = void 0;
-        if (typeof v === 'string') {
-          // if this is a string the user has just requested a validation by name, such as `isRequired`.
-          validationConfig = { [v]: {} };
-        } else {
-          // user has provided a validation config, so use that.
-          validationConfig = v;
-        }
+
+        // if this is a string the user has just requested a validation by name, such as `isRequired`. Otherwise, user
+        // has provided a validation config, so use that.
+        validationConfig = typeof v === 'string' ? { [v]: {} } : v;
 
         const result = validate(inputValue, validationConfig);
 
@@ -334,8 +330,8 @@ export const useForm = (
   }
 
   // we proxy this set state call so that we can trigger a form validation once a new set of values has been set on the form.
-  const externalSetValues = (values: FormData) => {
-    setValues(values);
+  const externalSetValues = (formValues: FormData) => {
+    setValues(formValues);
     validateForm();
   };
 
@@ -393,6 +389,7 @@ export const validate = (value: any, validation: InputValidationByKey) => {
         if (propValidator.errorMessage) {
           errorMessage = propValidator.errorMessage;
         }
+
         negate = propValidator.negate === void 0 ? false : propValidator.negate;
         options = propValidator.options === void 0 ? {} : propValidator.options;
       }
