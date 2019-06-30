@@ -73,6 +73,9 @@ describe('Form Validation', () => {
   let submitHandler;
   let formInfo;
   beforeEach(() => {
+    // avoid annoying virtual console errors we don't care about
+    jest.spyOn(window._virtualConsole, 'emit').mockImplementation(() => null);
+
     submitHandler = jest.fn();
     formInfo = null;
   });
