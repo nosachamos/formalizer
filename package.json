@@ -33,7 +33,7 @@
     "prepare:tslint": "tslint --fix --project .",
     "prepare:commit-changes": "git add --all && git commit -m \"chore(release): update changelog, fix linting, regenerate barrels\"",
     "test": "jest",
-    "test:coverage": "jest --coverage && cat ./coverage/lcov.info | coveralls",
+    "test:coverage": "jest --coverage --coverageReporters=text-lcov | coveralls",
     "test:watch": "jest --watch",
     "test-release": "run-s build test-release:*",
     "test-release:lint": "tslint --project . && prettier \"src/**/*.ts\" --list-different",
