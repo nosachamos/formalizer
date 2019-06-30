@@ -27,7 +27,6 @@ For built in validators, the value can simply be the desired error message:
 Alternatively, you may provide error messages to be used with all validators of a given type. To do that, set each
 validator as a key on the ValidatorDefaults object:
 
-ValidatorDefaults.isRequired = "This field is required.";
 ValidatorDefaults.startsWithLetterZ = {
     errorMessage: "Must start with the letter Z",
     validator: (value) => value && value.length > 0 && value.charAt(0).toLowerCase() === 'z';
@@ -41,7 +40,7 @@ ValidatorSettings = {
 */
 
 interface ValidatorSettingsType {
-  invalidAttr?: { error: boolean };
+  invalidAttr?: { [key: string]: any };
   invalidHelperTextAttr?: string;
 }
 
@@ -51,19 +50,21 @@ export const ValidatorSettings: ValidatorSettingsType = {
 };
 
 export const ValidatorDefaults: {
-  [key: string]: InputValidationConfigs | string;
-} = {};
+  [key: string]: InputValidationConfig | string;
+} = {
+  isRequired: 'This field is required.'
+};
 
-const DEFAULT_ERROR_MESSAGE = 'This field is not valid.';
+export const DEFAULT_VALIDATION_ERROR_MESSAGE = 'This field is not valid.';
 
 type ValidatorFunction = (value: any, options: object | undefined) => boolean;
 
-interface InputValidationConfigs {
+type InputValidationConfig = {
   errorMessage?: string;
   negate?: boolean;
   options?: object;
   validator?: ValidatorFunction;
-}
+};
 
 interface FormData {
   [key: string]: any;
@@ -74,9 +75,9 @@ type FormSubmitHandler = (
   formValues: { [ley: string]: any }
 ) => boolean;
 
-interface FormValidationConfigs {
-  [key: string]: InputValidationConfigs;
-}
+type InputValidationByKey = { [key: string]: InputValidationConfig | string };
+
+type InputValidation = InputValidationByKey | string;
 
 type ValidationErrorUpdater = (
   name: string,
@@ -89,7 +90,7 @@ interface FormInputParams {
   formHandler: [FormData, Dispatch<SetStateAction<FormData>>];
   updateError: ValidationErrorUpdater;
   invalidAttr?: object;
-  validation: FormValidationConfigs;
+  validation: InputValidation[];
   helperTextAttr?: string;
 }
 
@@ -105,7 +106,7 @@ interface InputAttributes {
 export const useFormInput = ({
   name,
   formHandler,
-  validation = {},
+  validation = [],
   updateError,
   invalidAttr = {},
   helperTextAttr
@@ -120,14 +121,28 @@ export const useFormInput = ({
 
   const handleValidation = useCallback(
     (inputValue: any) => {
-      const result = validate(inputValue, validation);
-      setIsValid(!result);
-      if (result) {
-        const [unmetRuleKey, errorMessage] = result;
-        setHelperText(errorMessage);
-        updateError(name, unmetRuleKey, errorMessage);
-      } else {
-        updateError(name);
+      for (let i = 0; i < validation.length; i++) {
+        const v = validation[i];
+        let validationConfig: InputValidationByKey | undefined = void 0;
+        if (typeof v === 'string') {
+          // if this is a string the user has just requested a validation by name, such as `isRequired`.
+          validationConfig = { [v]: {} };
+        } else {
+          // user has provided a validation config, so use that.
+          validationConfig = v;
+        }
+
+        const result = validate(inputValue, validationConfig);
+
+        setIsValid(!result);
+        if (result) {
+          const [unmetRuleKey, errorMessage] = result;
+          setHelperText(errorMessage);
+          updateError(name, unmetRuleKey, errorMessage);
+          break; // stop on the first error - we only show one at a time.
+        } else {
+          updateError(name);
+        }
       }
     },
     [name, validation, updateError]
@@ -145,6 +160,10 @@ export const useFormInput = ({
   useEffect(() => {
     if (isTouched) {
       handleValidation(value);
+    } else {
+      // if not touched, make sure the input is valid. This is needed when this effect is triggered due to a
+      // programmatic update to the form data, otherwise inputs that should now be valid won't get updated.
+      updateError(name);
     }
   }, [value, isTouched, handleValidation]);
 
@@ -192,7 +211,7 @@ export const useFormInput = ({
 export const useForm = (
   formRef: RefObject<HTMLFormElement>,
   defaultValues: FormData,
-  handleSubmit: FormSubmitHandler,
+  handleSubmit?: FormSubmitHandler,
   invalidAttr = ValidatorSettings.invalidAttr,
   helperTextAttr = ValidatorSettings.invalidHelperTextAttr
 ) => {
@@ -233,7 +252,23 @@ export const useForm = (
     [key: string]: { [key: string]: InputAttributes };
   }>({});
 
-  const useInput = (name: string, validationConfigs: FormValidationConfigs) => {
+  const validateForm = () => {
+    if (formRef.current) {
+      const formInputsByName =
+        formInputsAttrs.current[formRef.current.formValidationIdAttr];
+
+      // trigger validation on each of the form's inputs
+      if (formInputsByName) {
+        Object.keys(formInputsByName).forEach(inputName =>
+          formInputsByName[inputName].onBlur()
+        );
+      }
+    }
+
+    return mounted && !Object.values(errors).length; // no errors found
+  };
+
+  const useInput = (name: string, validationConfigs: InputValidation[]) => {
     const inputAttr = useFormInput({
       formHandler,
       helperTextAttr,
@@ -253,20 +288,6 @@ export const useForm = (
     }
 
     return inputAttr;
-  };
-
-  const validateForm = () => {
-    if (formRef.current) {
-      const formInputsByName =
-        formInputsAttrs.current[formRef.current.formValidationIdAttr];
-
-      // trigger validation on each of the form's inputs
-      Object.keys(formInputsByName).forEach(inputName =>
-        formInputsByName[inputName].onBlur()
-      );
-    }
-
-    return mounted && !Object.values(errors).length; // no errors found
   };
 
   const formSubmitHandler = (e: Event) => {
@@ -312,11 +333,17 @@ export const useForm = (
     formRef.current.currentSubmitHandler = formSubmitHandler;
   }
 
+  // we proxy this set state call so that we can trigger a form validation once a new set of values has been set on the form.
+  const externalSetValues = (values: FormData) => {
+    setValues(values);
+    validateForm();
+  };
+
   return {
     errors,
     formValues: values,
     isValid: mounted && !Object.values(errors).length,
-    setValues,
+    setValues: externalSetValues,
     useInput,
     validateForm
   };
@@ -328,16 +355,16 @@ export const useForm = (
  * @param validation
  * @returns {*}
  */
-export const validate = (
-  value: any,
-  validation: { [key: string]: InputValidationConfigs | string }
-) => {
-  const fieldsToValidate: { [key: string]: InputValidationConfigs } = {};
+export const validate = (value: any, validation: InputValidationByKey) => {
+  const fieldsToValidate: {
+    key: string;
+    validation: InputValidationConfig;
+  }[] = [];
 
   Object.keys(validation).forEach(property => {
     let options = {};
-    let errorMessage: string | undefined = void 0;
-    let negate: boolean | undefined = void 0;
+    let errorMessage: string = DEFAULT_VALIDATION_ERROR_MESSAGE;
+    let negate: boolean | undefined = false;
     let validatorFunction: ValidatorFunction | undefined = void 0;
 
     if (ValidatorDefaults[property]) {
@@ -351,7 +378,7 @@ export const validate = (
       } else {
         const propValidator = ValidatorDefaults[
           property
-        ] as InputValidationConfigs;
+        ] as InputValidationConfig;
 
         if (typeof propValidator.validator === 'string') {
           validatorFunction = validator[propValidator.validator];
@@ -363,59 +390,78 @@ export const validate = (
           );
         }
 
-        errorMessage = propValidator.errorMessage
-          ? propValidator.errorMessage
-          : DEFAULT_ERROR_MESSAGE;
+        if (propValidator.errorMessage) {
+          errorMessage = propValidator.errorMessage;
+        }
         negate = propValidator.negate === void 0 ? false : propValidator.negate;
         options = propValidator.options === void 0 ? {} : propValidator.options;
       }
     } else {
-      // @ts-ignore
-      validatorFunction = validator[property] as ValidatorFunction;
+      const valConfig = validation[property] as
+        | InputValidationConfig
+        | undefined;
+      // if this is an empty object, user passed in just the string for a built in validator, which got converted to an
+      // empty object before validate was invoked.
+      if (Object.keys(valConfig as object).length === 0) {
+        validatorFunction = (validator as any)[property];
+      } else if (
+        typeof valConfig === 'object' &&
+        typeof valConfig.validator === 'string'
+      ) {
+        validatorFunction = validator[valConfig.validator];
+      }
     }
 
-    fieldsToValidate[property] = {
-      errorMessage,
-      negate,
-      options,
-      validator: validatorFunction
-    };
+    //console.log("validatorFunction: " + JSON.stringify(validatorFunction));
+
+    fieldsToValidate.push({
+      key: property,
+      validation: {
+        errorMessage,
+        negate,
+        options,
+        validator: validatorFunction
+      }
+    });
 
     if (typeof validation[property] === 'string') {
-      fieldsToValidate[property].errorMessage = validation[property] as string;
-    } else if (typeof validation[property] === 'boolean') {
-      fieldsToValidate[property].negate = validation[property] as boolean;
-    } else if (typeof validation[property] === 'function') {
-      fieldsToValidate[property].validator = validation[
-        property
-      ] as ValidatorFunction;
+      fieldsToValidate[
+        fieldsToValidate.length - 1
+      ].validation.errorMessage = validation[property] as string;
     } else if (typeof validation[property] === 'object') {
-      fieldsToValidate[property] = {
-        ...fieldsToValidate[property],
+      if (
+        typeof (validation[property] as InputValidationConfig).validator ===
+        'string'
+      ) {
+        // this was resolved to a validator function, we can discard the string now.
+        delete (validation[property] as InputValidationConfig).validator;
+      }
+
+      //console.log('fieldsToValidate[fieldsToValidate.length-1].validation:')
+      // console.log(JSON.stringify(fieldsToValidate[fieldsToValidate.length-1].validation));
+      // console.log(JSON.stringify(validation[property]));
+
+      fieldsToValidate[fieldsToValidate.length - 1].validation = {
+        ...fieldsToValidate[fieldsToValidate.length - 1].validation,
         ...(validation[property] as object)
       };
     }
   });
 
-  // check whether we do need to validate at all - no validation rules, no validation needed
-  if (fieldsToValidate.isEmpty) {
-    return null;
-  }
-
   let unmetValidationKey: string | undefined = void 0;
+  let errorMessage: string | undefined = void 0;
   let isValid = true;
 
-  Object.keys(fieldsToValidate).forEach(property => {
-    if (unmetValidationKey) {
-      return;
-    }
-
-    const configs: InputValidationConfigs = fieldsToValidate[property];
+  for (let validationConfig of fieldsToValidate) {
+    const property = validationConfig.key;
+    const configs: InputValidationConfig = validationConfig.validation;
 
     switch (property) {
       case 'isRequired':
-        if (!value) {
+        if (!value || value.trim().length === 0) {
+          isValid = false;
           unmetValidationKey = property;
+          errorMessage = validationConfig.validation.errorMessage;
         }
         break;
 
@@ -431,11 +477,10 @@ export const validate = (
 
     if (!isValid) {
       unmetValidationKey = property;
-      return;
+      errorMessage = validationConfig.validation.errorMessage;
+      break;
     }
-  });
+  }
 
-  return unmetValidationKey
-    ? [unmetValidationKey, fieldsToValidate[unmetValidationKey].errorMessage]
-    : null;
+  return isValid ? null : [unmetValidationKey, errorMessage];
 };
