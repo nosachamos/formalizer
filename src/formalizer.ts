@@ -359,7 +359,7 @@ export const validate = (value: any, validation: InputValidationByKey) => {
 
   Object.keys(validation).forEach(property => {
     let options = {};
-    let errorMessage: string = DEFAULT_VALIDATION_ERROR_MESSAGE;
+    let errorMsg: string = DEFAULT_VALIDATION_ERROR_MESSAGE;
     let negate: boolean | undefined = false;
     let validatorFunction: ValidatorFunction | undefined = void 0;
 
@@ -369,7 +369,7 @@ export const validate = (value: any, validation: InputValidationByKey) => {
         validatorFunction = validator[
           ValidatorDefaults[property] as string
         ] as ValidatorFunction;
-        errorMessage = ValidatorDefaults[property] as string;
+        errorMsg = ValidatorDefaults[property] as string;
         negate = false;
       } else {
         const propValidator = ValidatorDefaults[
@@ -387,7 +387,7 @@ export const validate = (value: any, validation: InputValidationByKey) => {
         }
 
         if (propValidator.errorMessage) {
-          errorMessage = propValidator.errorMessage;
+          errorMsg = propValidator.errorMessage;
         }
 
         negate = propValidator.negate === void 0 ? false : propValidator.negate;
@@ -409,12 +409,10 @@ export const validate = (value: any, validation: InputValidationByKey) => {
       }
     }
 
-    //console.log("validatorFunction: " + JSON.stringify(validatorFunction));
-
     fieldsToValidate.push({
       key: property,
       validation: {
-        errorMessage,
+        errorMessage: errorMsg,
         negate,
         options,
         validator: validatorFunction
@@ -433,10 +431,6 @@ export const validate = (value: any, validation: InputValidationByKey) => {
         // this was resolved to a validator function, we can discard the string now.
         delete (validation[property] as InputValidationConfig).validator;
       }
-
-      //console.log('fieldsToValidate[fieldsToValidate.length-1].validation:')
-      // console.log(JSON.stringify(fieldsToValidate[fieldsToValidate.length-1].validation));
-      // console.log(JSON.stringify(validation[property]));
 
       fieldsToValidate[fieldsToValidate.length - 1].validation = {
         ...fieldsToValidate[fieldsToValidate.length - 1].validation,
