@@ -1,6 +1,6 @@
 {
   "name": "formalizer",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "description": "React hooks based form validation made for humans.",
   "main": "build/index.js",
   "typings": "build/index.d.ts",
@@ -145,7 +145,6 @@
       "js",
       "jsx"
     ],
-
     "coverageThreshold": {
       "global": {
         "branches": 90,
