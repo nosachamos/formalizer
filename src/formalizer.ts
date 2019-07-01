@@ -358,13 +358,13 @@ const loadValidatorDependency = () => {
     return true;
   }
 
-  let validatorVersion: string | undefined = require('validator/package.json')
+  const validatorVersion: string | undefined = require('validator/package.json')
     .version;
 
   // check if we support the validator version - throw error if unsupported
   if (validatorVersion) {
     const versionParts = validatorVersion.split('.');
-    if (parseInt(versionParts[0]) < 11) {
+    if (parseInt(versionParts[0], 10) < 11) {
       // major version is 11 or higher
       validator = undefined;
       throw new Error(
@@ -500,7 +500,8 @@ export const validate = (value: any, validation: InputValidationByKey) => {
           isValid = configs.validator(value, configs.options);
         } else {
           throw new Error(
-            `Cannot find a validator named "${property}". If you are attempting to perform a validation defined by the Validator library, please make sure to have it installed prior.`
+            `Cannot find a validator named "${property}". If you are attempting to perform a validation defined ` +
+              `by the Validator library, please make sure to have it installed prior.`
           );
         }
     }
