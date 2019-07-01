@@ -8,7 +8,6 @@ import {
   useState,
   RefObject
 } from 'react';
-import validator from 'validator';
 
 /*
 The validation object has a validation rule per key whose value has the following format:
@@ -38,6 +37,11 @@ ValidatorSettings = {
 }
 
 */
+
+// apparently can't import a type from an optional dependency, so use "any" until this is resolved.
+// https://stackoverflow.com/questions/52795354/how-to-use-a-type-from-an-optional-dependency-in-a-declaration-file
+// https://stackoverflow.com/questions/55041919/import-of-optional-module-with-type-information
+let validator: any = void 0;
 
 interface ValidatorSettingsType {
   invalidAttr?: { [key: string]: any };
@@ -347,6 +351,31 @@ export const useForm = (
   };
 };
 
+const loadValidatorDependency = () => {
+  validator = require('validator');
+
+  if (validator !== undefined) {
+    return true;
+  }
+
+  let validatorVersion: string | undefined = require('validator/package.json')
+    .version;
+
+  // check if we support the validator version - throw error if unsupported
+  if (validatorVersion) {
+    const versionParts = validatorVersion.split('.');
+    if (parseInt(versionParts[0]) < 11) {
+      // major version is 11 or higher
+      validator = undefined;
+      throw new Error(
+        `Formalizer: unsupported version of the validator library found (${validatorVersion}). Please upgrade to 11.0.0 or higher.`
+      );
+    }
+  }
+
+  return validator !== undefined;
+};
+
 /**
  * Returns either unmet rule, or null
  * @param value
@@ -367,10 +396,12 @@ export const validate = (value: any, validation: InputValidationByKey) => {
 
     if (ValidatorDefaults[property]) {
       if (typeof ValidatorDefaults[property] === 'string') {
-        // @ts-ignore
-        validatorFunction = validator[
-          ValidatorDefaults[property] as string
-        ] as ValidatorFunction;
+        if (loadValidatorDependency()) {
+          // @ts-ignore
+          validatorFunction = validator[
+            ValidatorDefaults[property] as string
+          ] as ValidatorFunction;
+        }
         errorMsg = ValidatorDefaults[property] as string;
         negate = false;
       } else {
@@ -379,7 +410,9 @@ export const validate = (value: any, validation: InputValidationByKey) => {
         ] as InputValidationConfig;
 
         if (typeof propValidator.validator === 'string') {
-          validatorFunction = validator[propValidator.validator];
+          if (loadValidatorDependency()) {
+            validatorFunction = validator[propValidator.validator];
+          }
         } else if (typeof propValidator.validator === 'function') {
           validatorFunction = propValidator.validator;
         } else {
@@ -402,12 +435,16 @@ export const validate = (value: any, validation: InputValidationByKey) => {
       // if this is an empty object, user passed in just the string for a built in validator, which got converted to an
       // empty object before validate was invoked.
       if (Object.keys(valConfig as object).length === 0) {
-        validatorFunction = (validator as any)[property];
+        if (loadValidatorDependency()) {
+          validatorFunction = (validator as any)[property];
+        }
       } else if (
         typeof valConfig === 'object' &&
         typeof valConfig.validator === 'string'
       ) {
-        validatorFunction = validator[valConfig.validator];
+        if (loadValidatorDependency()) {
+          validatorFunction = validator[valConfig.validator];
+        }
       }
     }
 
@@ -461,6 +498,10 @@ export const validate = (value: any, validation: InputValidationByKey) => {
       default:
         if (configs.validator !== undefined) {
           isValid = configs.validator(value, configs.options);
+        } else {
+          throw new Error(
+            `Cannot find a validator named "${property}". If you are attempting to perform a validation defined by the Validator library, please make sure to have it installed prior.`
+          );
         }
     }
 

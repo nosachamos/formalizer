@@ -68,7 +68,7 @@
   "peerDependencies": {
     "react": "^16.8.6"
   },
-  "dependencies": {
+  "optionalDependencies": {
     "validator": "^11.0.0"
   },
   "devDependencies": {

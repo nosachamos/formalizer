@@ -74,7 +74,7 @@ describe('Form Validation', () => {
   let formInfo;
   beforeEach(() => {
     // avoid annoying virtual console errors we don't care about
-    jest.spyOn(window._virtualConsole, 'emit').mockImplementation(() => null);
+    jest.spyOn(window._virtualConsole, 'emit').mockImplementation(() => void 0);
 
     submitHandler = jest.fn();
     formInfo = null;
@@ -1405,5 +1405,126 @@ describe('Form Validation', () => {
     expect(submitHandler).not.toHaveBeenCalled();
     expect(formInfo.errors.field1).toEqual(undefined);
     expect(formInfo.errors.field2).toEqual(undefined);
+  });
+
+  it('Handle unknown validator properly', () => {
+    const FormWrapper = () => {
+      const formRef = useRef(null);
+      formInfo = useForm(
+        formRef,
+        { field1: '', field2: 'testValue' },
+        submitHandler,
+        {}
+      );
+      return buildTestForm(formRef, formInfo, ['unknownValidator'], []);
+    };
+
+    wrapper = mount(
+      <ErrorBoundary>
+        <FormWrapper />
+      </ErrorBoundary>
+    );
+
+    expect(formInfo.isValid).toBe(true);
+
+    // still valid because we didn't fin the validation
+    expect(formInfo.isValid).toBe(true);
+
+    const callMount = () =>
+      wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+    expect(callMount).toThrowError(
+      new Error(
+        `Cannot find a validator named "unknownValidator". If you are attempting to perform a validation defined by the Validator library, please make sure to have it installed prior.`
+      )
+    );
+  });
+
+  it('Handle missing optional validator library dependency correctly', () => {
+    const originalValidator = require('validator');
+    jest.mock('validator', () => void 0);
+
+    // making sure we don't have a default validator named isEmail
+    delete ValidatorDefaults.isEmail;
+
+    // attempt to use the missing dependency
+    const FormWrapper = () => {
+      const formRef = useRef(null);
+      formInfo = useForm(
+        formRef,
+        { field1: 'invalid', field2: '' },
+        submitHandler,
+        {}
+      );
+      return buildTestForm(formRef, formInfo, ['isEmail'], []);
+    };
+
+    wrapper = mount(
+      <ErrorBoundary>
+        <FormWrapper />
+      </ErrorBoundary>
+    );
+
+    expect(formInfo.isValid).toBe(true);
+
+    // still valid because we didn't fin the validation
+    expect(formInfo.isValid).toBe(true);
+
+    const callMount = () =>
+      wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+    try {
+      expect(callMount).toThrowError(
+        new Error(
+          `Cannot find a validator named "isEmail". If you are attempting to perform a validation defined by the Validator library, please make sure to have it installed prior.`
+        )
+      );
+    } finally {
+      jest.resetModules();
+    }
+  });
+
+  it('Handle unsupported validator library dependency correctly', () => {
+    const originalPackageJson = require('validator/package.json');
+    jest.mock('validator/package.json', () => ({ version: '1.0.0' }));
+
+    // making sure we don't have a default validator named isEmail
+    delete ValidatorDefaults.isEmail;
+
+    // attempt to use the missing dependency
+    const FormWrapper = () => {
+      const formRef = useRef(null);
+      formInfo = useForm(
+        formRef,
+        { field1: 'invalid', field2: '' },
+        submitHandler,
+        {}
+      );
+      return buildTestForm(formRef, formInfo, ['isEmail'], []);
+    };
+
+    wrapper = mount(
+      <ErrorBoundary>
+        <FormWrapper />
+      </ErrorBoundary>
+    );
+
+    expect(formInfo.isValid).toBe(true);
+
+    // still valid because we didn't fin the validation
+    expect(formInfo.isValid).toBe(true);
+
+    const callMount = () =>
+      wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+    try {
+      expect(callMount).toThrowError(
+        new Error(
+          `Formalizer: unsupported version of the validator library found (1.0.0). Please upgrade to 11.0.0 or higher.`
+        )
+      );
+    } finally {
+      jest.resetModules();
+    }
   });
 });
