@@ -155,6 +155,16 @@ describe('Form Validation', () => {
 
   [
     {
+      title: `Error raised when required fields have empty value - using plain string validator instead of array`,
+      field1Value: '',
+      field2Value: '',
+      field1Validation: 'isRequired',
+      field2Validation: 'isRequired',
+      field1ErrorMessage: FIELD_REQUIRED_MESSAGE,
+      field2ErrorMessage: FIELD_REQUIRED_MESSAGE,
+      buttonToClickSelector: '[data-test="force-validation-button"]'
+    },
+    {
       title: `Error raised when required fields have empty value - using custom is required object`,
       field1Value: '',
       field2Value: '',
@@ -691,6 +701,62 @@ describe('Form Validation', () => {
     );
   });
 
+  it('Custom built-in validator function that uses custom options can be provided', () => {
+    // adding a custom global validator which changes behavior based on given option
+    ValidatorDefaults.mustNotBeEmpty = {
+      errorMessage: 'Must not be empty',
+      validator: 'isEmpty',
+      options: { ignore_whitespace: true },
+      negate: true
+    };
+
+    // first we test without giving options
+    const FormWrapper = () => {
+      const formRef = useRef(null);
+      formInfo = useForm(formRef, { field1: '', field2: '' }, submitHandler);
+      return buildTestForm(formRef, formInfo, ['mustNotBeEmpty'], []);
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+    // starts with error
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      'Must not be empty',
+      undefined,
+      false
+    );
+
+    typeIntoInput(wrapper.find('#field1'), '   ');
+    // still has error since we are using option to ignore whitespaces
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      'Must not be empty',
+      undefined,
+      false
+    );
+
+    typeIntoInput(wrapper.find('#field1'), 'abc');
+    // no errors now
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      undefined,
+      undefined,
+      true,
+      false
+    );
+  });
+
   it('Custom global validator function that uses custom options can be provided', () => {
     // adding a custom global validator which changes behavior based on given option
     ValidatorDefaults.mustContainLetterZ = {
@@ -839,7 +905,7 @@ describe('Form Validation', () => {
       const originalError = console.error;
       console.error = jest.fn(); // prevents React 16 error boundary warning
 
-      ValidatorDefaults.invalidValidator = invalidValidatorDef;
+      ValidatorDefaults.isEmail = invalidValidatorDef;
 
       const formRef = createRef();
       const FormWrapper = () => {
@@ -848,7 +914,7 @@ describe('Form Validation', () => {
           { field1: 'test', field2: '' },
           submitHandler
         );
-        return buildTestForm(formRef, formInfo, ['invalidValidator'], []);
+        return buildTestForm(formRef, formInfo, ['isEmail'], []);
       };
 
       wrapper = mount(
@@ -861,7 +927,9 @@ describe('Form Validation', () => {
         wrapper.find('[data-test="force-validation-button"]').simulate('click');
 
       expect(callMount).toThrowError(
-        new Error('The given validator must be either a string or a function.')
+        new Error(
+          'Formalizer: the given validator must be either a string or a function.'
+        )
       );
 
       console.error = originalError;
@@ -1425,8 +1493,6 @@ describe('Form Validation', () => {
       </ErrorBoundary>
     );
 
-    expect(formInfo.isValid).toBe(true);
-
     // still valid because we didn't fin the validation
     expect(formInfo.isValid).toBe(true);
 
@@ -1435,54 +1501,244 @@ describe('Form Validation', () => {
 
     expect(callMount).toThrowError(
       new Error(
-        `Cannot find a validator named "unknownValidator". If you are attempting to perform a validation defined by the Validator library, please make sure to have it installed prior.`
+        `Formalizer: cannot find a validator named "unknownValidator". If you are attempting to perform a validation defined by the Validator library, please make sure to have it installed prior.`
       )
     );
   });
 
-  it('Handle missing optional validator library dependency correctly', () => {
-    const originalValidator = require('validator');
-    jest.mock('validator', () => void 0);
+  [
+    {
+      validator: [{ invalidValidatorFunc: { validator: false } }],
+      type: 'boolean'
+    },
+    {
+      validator: [{ invalidValidatorFunc: { validator: 123 } }],
+      type: 'number'
+    }
+  ].forEach(v =>
+    it(`Handle validator of invalid type "${v.type}"`, () => {
+      const FormWrapper = () => {
+        const formRef = useRef(null);
+        formInfo = useForm(
+          formRef,
+          { field1: '', field2: 'testValue' },
+          submitHandler,
+          {}
+        );
+        return buildTestForm(formRef, formInfo, v.validator, []);
+      };
 
-    // making sure we don't have a default validator named isEmail
-    delete ValidatorDefaults.isEmail;
-
-    // attempt to use the missing dependency
-    const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useForm(
-        formRef,
-        { field1: 'invalid', field2: '' },
-        submitHandler,
-        {}
+      wrapper = mount(
+        <ErrorBoundary>
+          <FormWrapper />
+        </ErrorBoundary>
       );
-      return buildTestForm(formRef, formInfo, ['isEmail'], []);
-    };
 
-    wrapper = mount(
-      <ErrorBoundary>
-        <FormWrapper />
-      </ErrorBoundary>
-    );
+      // still valid because we didn't fin the validation
+      expect(formInfo.isValid).toBe(true);
 
-    expect(formInfo.isValid).toBe(true);
+      const callMount = () =>
+        wrapper.find('[data-test="force-validation-button"]').simulate('click');
 
-    // still valid because we didn't fin the validation
-    expect(formInfo.isValid).toBe(true);
-
-    const callMount = () =>
-      wrapper.find('[data-test="force-validation-button"]').simulate('click');
-
-    try {
       expect(callMount).toThrowError(
         new Error(
-          `Cannot find a validator named "isEmail". If you are attempting to perform a validation defined by the Validator library, please make sure to have it installed prior.`
+          `Formalizer: unable to execute the "invalidValidatorFunc" validation. The given validator is not a function.`
         )
       );
-    } finally {
-      jest.resetModules();
+    })
+  );
+
+  [
+    {
+      validator: [{ isEmail: [] }],
+      type: 'validator of array type',
+      error: 'Formalizer: validators must be of string or object type.'
+    },
+    {
+      validator: [{ isEmail: 123 }],
+      type: 'validator of 123 type',
+      error: 'Formalizer: validators must be of string or object type.'
+    },
+    {
+      validator: [{ isEmail: false }],
+      type: 'validator of boolean type',
+      error: 'Formalizer: validators must be of string or object type.'
+    },
+    {
+      validator: [{ isEmail: null }],
+      type: 'validator of null type',
+      error: 'Formalizer: validators must be of string or object type.'
     }
-  });
+  ].forEach(v =>
+    it(`Handle global validator of invalid ${v.type}`, () => {
+      ValidatorDefaults.invalidValidator = v.validator;
+
+      const FormWrapper = () => {
+        const formRef = useRef(null);
+        formInfo = useForm(
+          formRef,
+          { field1: '', field2: 'testValue' },
+          submitHandler,
+          {}
+        );
+        return buildTestForm(formRef, formInfo, ['invalidValidator'], []);
+      };
+
+      wrapper = mount(
+        <ErrorBoundary>
+          <FormWrapper />
+        </ErrorBoundary>
+      );
+
+      // still valid because we didn't fin the validation
+      expect(formInfo.isValid).toBe(true);
+
+      const callMount = () =>
+        wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+      expect(callMount).toThrowError(new Error(v.error));
+    })
+  );
+
+  [
+    {
+      validator: false,
+      type: 'bare boolean type',
+      error:
+        'Formalizer: the validator value passed into useInput must be a single string or an array.'
+    },
+    {
+      validator: 123,
+      type: 'bare numeric type',
+      error:
+        'Formalizer: the validator value passed into useInput must be a single string or an array.'
+    },
+    {
+      validator: null,
+      type: 'bare null type',
+      error:
+        'Formalizer: the validator value passed into useInput must be a single string or an array.'
+    },
+    {
+      validator: [false],
+      type: 'boolean type',
+      error: 'Formalizer: validators must be of string or object type.'
+    },
+    {
+      validator: [123],
+      type: 'numeric type',
+      error: 'Formalizer: validators must be of string or object type.'
+    },
+    {
+      validator: [undefined],
+      type: 'undefined type',
+      error: 'Formalizer: validators must be of string or object type.'
+    },
+    {
+      validator: [null],
+      type: 'null type',
+      error: 'Formalizer: validators must be of string or object type.'
+    },
+    {
+      validator: [{ isEmail: [] }],
+      type: 'array validator value',
+      error: 'Formalizer: validators must be of string or object type.'
+    },
+    {
+      validator: [{ isEmail: undefined }],
+      type: 'undefined validator value',
+      error: 'Formalizer: validators must be of string or object type.'
+    },
+    {
+      validator: [{ isEmail: false }],
+      type: 'boolean validator value',
+      error: 'Formalizer: validators must be of string or object type.'
+    },
+    {
+      validator: [{ isEmail: 123 }],
+      type: 'numberic validator value',
+      error: 'Formalizer: validators must be of string or object type.'
+    }
+  ].forEach(v =>
+    it(`Handle custom validator of invalid ${v.type}`, () => {
+      const FormWrapper = () => {
+        const formRef = useRef(null);
+        formInfo = useForm(
+          formRef,
+          { field1: '', field2: 'testValue' },
+          submitHandler,
+          {}
+        );
+        return buildTestForm(formRef, formInfo, v.validator, []);
+      };
+
+      wrapper = mount(
+        <ErrorBoundary>
+          <FormWrapper />
+        </ErrorBoundary>
+      );
+
+      // still valid because we didn't fin the validation
+      expect(formInfo.isValid).toBe(true);
+
+      const callMount = () =>
+        wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+      expect(callMount).toThrowError(new Error(v.error));
+    })
+  );
+
+  // THESE TESTS MUST RUN LAST
+  [
+    { name: 'unknown string validator', validator: ['isEmail'] },
+    {
+      name: 'unknown validator function',
+      validator: [{ isEmail: { validator: 'isEmail' } }]
+    }
+  ].forEach(v =>
+    it(`Handle missing optional validator library dependency correctly when using ${v.name}`, () => {
+      jest.mock('validator', () => void 0);
+
+      // making sure we don't have a default validator named isEmail
+      delete ValidatorDefaults.isEmail;
+
+      // attempt to use the missing dependency
+      const FormWrapper = () => {
+        const formRef = useRef(null);
+        formInfo = useForm(
+          formRef,
+          { field1: 'invalid', field2: '' },
+          submitHandler,
+          {}
+        );
+        return buildTestForm(formRef, formInfo, v.validator, []);
+      };
+
+      wrapper = mount(
+        <ErrorBoundary>
+          <FormWrapper />
+        </ErrorBoundary>
+      );
+
+      expect(formInfo.isValid).toBe(true);
+
+      // still valid because we didn't fin the validation
+      expect(formInfo.isValid).toBe(true);
+
+      const callMount = () =>
+        wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+      try {
+        expect(callMount).toThrowError(
+          new Error(
+            `Formalizer: cannot find a validator named "isEmail". If you are attempting to perform a validation defined by the Validator library, please make sure to have it installed prior.`
+          )
+        );
+      } finally {
+        jest.resetModules();
+      }
+    })
+  );
 
   it('Handle unsupported validator library dependency correctly', () => {
     const originalPackageJson = require('validator/package.json');

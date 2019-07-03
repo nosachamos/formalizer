@@ -127,7 +127,16 @@ export const useFormInput = ({
 
   const handleValidation = useCallback(
     (inputValue: any) => {
-      for (const v of validation) {
+      const validationToProcess =
+        typeof validation === 'string' ? [validation] : validation;
+
+      if (!Array.isArray(validationToProcess)) {
+        throw new Error(
+          'Formalizer: the validator value passed into useInput must be a single string or an array.'
+        );
+      }
+
+      for (const v of validationToProcess) {
         let validationConfig: InputValidationByKey | undefined = void 0;
 
         // if this is a string the user has just requested a validation by name, such as `isRequired`. Otherwise, user
@@ -259,8 +268,8 @@ export const useForm = (
       const formInputsByName =
         formInputsAttrs.current[formRef.current.formValidationIdAttr];
 
-      // trigger validation on each of the form's inputs
       if (formInputsByName) {
+        // trigger validation on each of the form's inputs
         Object.keys(formInputsByName).forEach(inputName =>
           formInputsByName[inputName].onBlur()
         );
@@ -388,6 +397,16 @@ export const validate = (value: any, validation: InputValidationByKey) => {
     validation: InputValidationConfig;
   }> = [];
 
+  // making sure the given validator is of supported type
+  if (
+    validation === null ||
+    validation === undefined ||
+    (typeof validation !== 'string' && typeof validation !== 'object') ||
+    Array.isArray(validation)
+  ) {
+    throw new Error('Formalizer: validators must be of string or object type.');
+  }
+
   Object.keys(validation).forEach(property => {
     let options = {};
     let errorMsg: string = DEFAULT_VALIDATION_ERROR_MESSAGE;
@@ -395,6 +414,18 @@ export const validate = (value: any, validation: InputValidationByKey) => {
     let validatorFunction: ValidatorFunction | undefined = void 0;
 
     if (ValidatorDefaults[property]) {
+      // making sure the given validator is of supported type
+      if (
+        ValidatorDefaults[property] === null ||
+        (typeof ValidatorDefaults[property] !== 'string' &&
+          typeof ValidatorDefaults[property] !== 'object') ||
+        Array.isArray(ValidatorDefaults[property])
+      ) {
+        throw new Error(
+          'Formalizer: validators must be of string or object type.'
+        );
+      }
+
       if (typeof ValidatorDefaults[property] === 'string') {
         if (loadValidatorDependency()) {
           // @ts-ignore
@@ -405,6 +436,7 @@ export const validate = (value: any, validation: InputValidationByKey) => {
         errorMsg = ValidatorDefaults[property] as string;
         negate = false;
       } else {
+        // can only be an object at this point
         const propValidator = ValidatorDefaults[
           property
         ] as InputValidationConfig;
@@ -417,7 +449,7 @@ export const validate = (value: any, validation: InputValidationByKey) => {
           validatorFunction = propValidator.validator;
         } else {
           throw new Error(
-            'The given validator must be either a string or a function.'
+            'Formalizer: the given validator must be either a string or a function.'
           );
         }
 
@@ -432,6 +464,17 @@ export const validate = (value: any, validation: InputValidationByKey) => {
       const valConfig = validation[property] as
         | InputValidationConfig
         | undefined;
+
+      if (
+        valConfig === null ||
+        valConfig === undefined ||
+        Array.isArray(valConfig)
+      ) {
+        throw new Error(
+          'Formalizer: validators must be of string or object type.'
+        );
+      }
+
       // if this is an empty object, user passed in just the string for a built in validator, which got converted to an
       // empty object before validate was invoked.
       if (Object.keys(valConfig as object).length === 0) {
@@ -475,6 +518,10 @@ export const validate = (value: any, validation: InputValidationByKey) => {
         ...fieldsToValidate[fieldsToValidate.length - 1].validation,
         ...(validation[property] as object)
       };
+    } else {
+      throw new Error(
+        'Formalizer: validators must be of string or object type.'
+      );
     }
   });
 
@@ -496,12 +543,16 @@ export const validate = (value: any, validation: InputValidationByKey) => {
         break;
 
       default:
-        if (configs.validator !== undefined) {
+        if (typeof configs.validator === 'function') {
           isValid = configs.validator(value, configs.options);
+        } else if (typeof configs.validator === 'undefined') {
+          throw new Error(
+            `Formalizer: cannot find a validator named "${property}". If you are attempting to perform a validation defined ` +
+              `by the Validator library, please make sure to have it installed prior.`
+          );
         } else {
           throw new Error(
-            `Cannot find a validator named "${property}". If you are attempting to perform a validation defined ` +
-              `by the Validator library, please make sure to have it installed prior.`
+            `Formalizer: unable to execute the "${property}" validation. The given validator is not a function.`
           );
         }
     }
