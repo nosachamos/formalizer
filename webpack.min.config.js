@@ -7,7 +7,7 @@ module.exports = {
     path: path.join(__dirname, '/build'),
     filename: 'index.min.js'
   },
-  externals: ['react'],
+  externals: ['react', 'validator'],
   optimization: {
     minimizer: [new UglifyJsPlugin()]
   }
