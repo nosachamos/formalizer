@@ -4,7 +4,6 @@
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 ![npm](https://img.shields.io/npm/v/formalizer.svg)
 ![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/nosachamos/formalizer.svg)
-![npm bundle size](https://img.shields.io/bundlephobia/minzip/formalizer.svg)
 ![GitHub](https://img.shields.io/github/license/nosachamos/formalizer.svg)
 
 Formalizer is a React Hooks based form validation library made for humans. The cleanest code or your money back ;)
