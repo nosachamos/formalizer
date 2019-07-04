@@ -5,4 +5,4 @@
 - The cleanest code or your money back
 
 [GitHub](https://github.com/nosachamos/formalizer/)
-[Getting Started](#formalizer)
+[Getting Started](/home)

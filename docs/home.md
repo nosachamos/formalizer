@@ -6,11 +6,11 @@
 ![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/nosachamos/formalizer.svg)
 ![GitHub](https://img.shields.io/github/license/nosachamos/formalizer.svg)
 
-Formalizer is a React Hooks based form validation library made for humans. The cleanest code or your money back ;)
+Formalizer is a React Hooks based form validation library made for humans. The cleanest code or your money back.
 
-![Formalizer](cover.png)
+![Formalizer](logo.png)
 
-...because we want to go to Mars and stuff and who has time to worry about form validations, right?
+Simple, tiny, extensible, intuitive, documented, fully tested, magical.
 
 ## Installation
 
