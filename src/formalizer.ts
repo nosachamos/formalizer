@@ -35,7 +35,6 @@ ValidatorSettings = {
     invalidAttr: { error: true },
     invalidHelperTextAttr: undefined
 }
-
 */
 
 // apparently can't import a type from an optional dependency, so use "any" until this is resolved.
@@ -61,12 +60,12 @@ export const ValidatorDefaults: {
 
 export const DEFAULT_VALIDATION_ERROR_MESSAGE = 'This field is not valid.';
 
-type ValidatorFunction = (value: any, options: object | undefined) => boolean;
+type ValidatorFunction = (value: any, options: Options) => boolean;
 
 interface InputValidationConfig {
   errorMessage?: string;
   negate?: boolean;
-  options?: object;
+  options?: Options;
   validator?: ValidatorFunction;
 }
 
@@ -109,6 +108,21 @@ interface InputAttributes {
   invalidAttr?: object;
 }
 
+type Options = {
+  [key: string]: any;
+  formData: { [key: string]: string };
+};
+
+export const mustMatchField = (
+  fieldName: string
+): { [key: string]: InputValidationConfig } => ({
+  mustMatchField: {
+    errorMessage: 'Must match the password.',
+    validator: (value: string, options: Options) =>
+      value === options.formData[fieldName]
+  }
+});
+
 export const useFormInput = ({
   name,
   formHandler,
@@ -143,7 +157,7 @@ export const useFormInput = ({
         // has provided a validation config, so use that.
         validationConfig = typeof v === 'string' ? { [v]: {} } : v;
 
-        const result = validate(inputValue, validationConfig);
+        const result = validate(inputValue, validationConfig, formData);
 
         setIsValid(!result);
         if (result) {
@@ -391,7 +405,11 @@ const loadValidatorDependency = () => {
  * @param validation
  * @returns {*}
  */
-export const validate = (value: any, validation: InputValidationByKey) => {
+export const validate = (
+  value: any,
+  validation: InputValidationByKey,
+  formData: FormData
+) => {
   const fieldsToValidate: Array<{
     key: string;
     validation: InputValidationConfig;
@@ -408,7 +426,7 @@ export const validate = (value: any, validation: InputValidationByKey) => {
   }
 
   Object.keys(validation).forEach(property => {
-    let options = {};
+    let options = { formData };
     let errorMsg: string = DEFAULT_VALIDATION_ERROR_MESSAGE;
     let negate: boolean | undefined = false;
     let validatorFunction: ValidatorFunction | undefined = void 0;
@@ -458,7 +476,10 @@ export const validate = (value: any, validation: InputValidationByKey) => {
         }
 
         negate = propValidator.negate === void 0 ? false : propValidator.negate;
-        options = propValidator.options === void 0 ? {} : propValidator.options;
+        options =
+          propValidator.options === void 0
+            ? { formData }
+            : propValidator.options;
       }
     } else {
       const valConfig = validation[property] as
@@ -532,6 +553,10 @@ export const validate = (value: any, validation: InputValidationByKey) => {
   for (const validationConfig of fieldsToValidate) {
     const property = validationConfig.key;
     const configs: InputValidationConfig = validationConfig.validation;
+
+    if (!configs.options) {
+      configs.options = { formData };
+    }
 
     switch (property) {
       case 'isRequired':

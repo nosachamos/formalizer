@@ -125,9 +125,9 @@ describe('Form Validation', () => {
     field2Validation
   ) => (
     <form ref={formRef}>
-      <input id="field1" {...formInfo.useInput('field1', field1Validation)} />
+      <input name="field1" {...formInfo.useInput('field1', field1Validation)} />
       <span id="field1Error">{formInfo.errors['field1']}</span>
-      <input id="field2" {...formInfo.useInput('field2', field2Validation)} />
+      <input name="field2" {...formInfo.useInput('field2', field2Validation)} />
       <span id="field2Error">{formInfo.errors['field2']}</span>
 
       <button
@@ -277,7 +277,7 @@ describe('Form Validation', () => {
 
     // set some text to the first input, and see that it errors out now
     // // finally, make it invalid by removing the letter z
-    typeIntoInput(wrapper.find('#field1'), 'test z');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'test z');
 
     // no errors on second field, but first field is now errored because validation was negated
     performAssertions(
@@ -322,7 +322,7 @@ describe('Form Validation', () => {
     );
 
     // set some text to the first input: it continues to be valid
-    typeIntoInput(wrapper.find('#field1'), 'test z');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'test z');
 
     // submit form
     formRef.current.dispatchEvent(new Event('submit'));
@@ -444,8 +444,8 @@ describe('Form Validation', () => {
       false
     );
 
-    expect(wrapper.find('#field1').prop('error')).not.toBeDefined();
-    expect(wrapper.find('#field2').prop('error')).toBe(true);
+    expect(wrapper.find('[name="field1"]').prop('error')).not.toBeDefined();
+    expect(wrapper.find('[name="field2"]').prop('error')).toBe(true);
   });
 
   it('Custom error attribute is added to input', () => {
@@ -475,8 +475,10 @@ describe('Form Validation', () => {
       false
     );
 
-    expect(wrapper.find('#field1').prop('input-has-error')).toBe('yes');
-    expect(wrapper.find('#field2').prop('input-has-error')).not.toBeDefined();
+    expect(wrapper.find('[name="field1"]').prop('input-has-error')).toBe('yes');
+    expect(
+      wrapper.find('[name="field2"]').prop('input-has-error')
+    ).not.toBeDefined();
   });
 
   it('Global custom error attribute is added to input', () => {
@@ -508,8 +510,10 @@ describe('Form Validation', () => {
       false
     );
 
-    expect(wrapper.find('#field1').prop('input-has-error')).toBe('yes');
-    expect(wrapper.find('#field2').prop('input-has-error')).not.toBeDefined();
+    expect(wrapper.find('[name="field1"]').prop('input-has-error')).toBe('yes');
+    expect(
+      wrapper.find('[name="field2"]').prop('input-has-error')
+    ).not.toBeDefined();
 
     ValidatorSettings.invalidAttr = originalInvalidAttr;
   });
@@ -620,7 +624,7 @@ describe('Form Validation', () => {
     );
 
     // let's type something without letter Z now
-    typeIntoInput(wrapper.find('#field1'), 'test');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'test');
 
     // now is not empty anymore but doesn't have letter z
     performAssertions(
@@ -633,7 +637,7 @@ describe('Form Validation', () => {
     );
 
     // // finally, make it invalid by removing the letter z
-    typeIntoInput(wrapper.find('#field1'), 'test z');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'test z');
 
     // no errors
     performAssertions(
@@ -679,7 +683,7 @@ describe('Form Validation', () => {
     );
 
     // remove letter z, error is back
-    typeIntoInput(wrapper.find('#field1'), 'test');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'test');
     performAssertions(
       wrapper,
       formInfo,
@@ -690,7 +694,7 @@ describe('Form Validation', () => {
     );
 
     // remove everything and the required error is back
-    typeIntoInput(wrapper.find('#field1'), '');
+    typeIntoInput(wrapper.find('[name="field1"]'), '');
     performAssertions(
       wrapper,
       formInfo,
@@ -733,7 +737,7 @@ describe('Form Validation', () => {
       false
     );
 
-    typeIntoInput(wrapper.find('#field1'), '   ');
+    typeIntoInput(wrapper.find('[name="field1"]'), '   ');
     // still has error since we are using option to ignore whitespaces
     performAssertions(
       wrapper,
@@ -744,7 +748,7 @@ describe('Form Validation', () => {
       false
     );
 
-    typeIntoInput(wrapper.find('#field1'), 'abc');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'abc');
     // no errors now
     performAssertions(
       wrapper,
@@ -798,7 +802,7 @@ describe('Form Validation', () => {
         false
       );
 
-      typeIntoInput(wrapper.find('#field1'), 'test z'); // no error now
+      typeIntoInput(wrapper.find('[name="field1"]'), 'test z'); // no error now
       performAssertions(
         wrapper,
         formInfo,
@@ -810,7 +814,7 @@ describe('Form Validation', () => {
       );
 
       // upper case is not recognized by default
-      typeIntoInput(wrapper.find('#field1'), 'test Z'); // upper case Z will not be accepted
+      typeIntoInput(wrapper.find('[name="field1"]'), 'test Z'); // upper case Z will not be accepted
       performAssertions(
         wrapper,
         formInfo,
@@ -862,7 +866,7 @@ describe('Form Validation', () => {
         false
       );
 
-      typeIntoInput(wrapper.find('#field1'), 'test z'); // no error now
+      typeIntoInput(wrapper.find('[name="field1"]'), 'test z'); // no error now
       performAssertions(
         wrapper,
         formInfo,
@@ -874,7 +878,7 @@ describe('Form Validation', () => {
       );
 
       // upper case now recognized
-      typeIntoInput(wrapper.find('#field1'), 'test Z'); // no error now, we are validating with the ignore case option
+      typeIntoInput(wrapper.find('[name="field1"]'), 'test Z'); // no error now, we are validating with the ignore case option
       performAssertions(
         wrapper,
         formInfo,
@@ -968,7 +972,7 @@ describe('Form Validation', () => {
       false
     );
 
-    typeIntoInput(wrapper.find('#field1'), 'valid.email@email.com');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'valid.email@email.com');
     performAssertions(
       wrapper,
       formInfo,
@@ -1019,7 +1023,7 @@ describe('Form Validation', () => {
       false
     );
 
-    typeIntoInput(wrapper.find('#field1'), 'valid.email@email.com');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'valid.email@email.com');
     performAssertions(
       wrapper,
       formInfo,
@@ -1074,7 +1078,7 @@ describe('Form Validation', () => {
       false
     );
 
-    typeIntoInput(wrapper.find('#field1'), 'valid.email@email.com');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'valid.email@email.com');
     performAssertions(
       wrapper,
       formInfo,
@@ -1123,7 +1127,7 @@ describe('Form Validation', () => {
       false
     );
 
-    typeIntoInput(wrapper.find('#field1'), 'valid.email@email.com');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'valid.email@email.com');
     performAssertions(
       wrapper,
       formInfo,
@@ -1172,7 +1176,7 @@ describe('Form Validation', () => {
       false
     );
 
-    typeIntoInput(wrapper.find('#field1'), 'valid.email@email.com');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'valid.email@email.com');
     performAssertions(
       wrapper,
       formInfo,
@@ -1220,7 +1224,7 @@ describe('Form Validation', () => {
       false
     );
 
-    typeIntoInput(wrapper.find('#field1'), 'valid.email@email.com');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'valid.email@email.com');
     performAssertions(
       wrapper,
       formInfo,
@@ -1267,7 +1271,7 @@ describe('Form Validation', () => {
       false
     );
 
-    typeIntoInput(wrapper.find('#field1'), 'valid.email@email.com');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'valid.email@email.com');
     performAssertions(
       wrapper,
       formInfo,
@@ -1309,7 +1313,7 @@ describe('Form Validation', () => {
       false
     );
 
-    typeIntoInput(wrapper.find('#field1'), 'valid.email@email.com');
+    typeIntoInput(wrapper.find('[name="field1"]'), 'valid.email@email.com');
     performAssertions(
       wrapper,
       formInfo,
@@ -1426,13 +1430,17 @@ describe('Form Validation', () => {
       false
     );
 
-    expect(wrapper.find('#field1').prop('input-has-error')).toBe('yes');
-    expect(wrapper.find('#field2').prop('input-has-error')).not.toBeDefined();
+    expect(wrapper.find('[name="field1"]').prop('input-has-error')).toBe('yes');
+    expect(
+      wrapper.find('[name="field2"]').prop('input-has-error')
+    ).not.toBeDefined();
 
-    expect(wrapper.find('#field1').prop('myHelperText')).toBe(
+    expect(wrapper.find('[name="field1"]').prop('myHelperText')).toBe(
       FIELD_REQUIRED_MESSAGE
     );
-    expect(wrapper.find('#field2').prop('myHelperText')).not.toBeDefined();
+    expect(
+      wrapper.find('[name="field2"]').prop('myHelperText')
+    ).not.toBeDefined();
 
     console.error = originalError;
   });
