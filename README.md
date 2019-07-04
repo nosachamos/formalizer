@@ -268,3 +268,11 @@ const mustContainZValidator = {
   <button type="submit">Submit</button>
 </form>;
 ```
+
+## License
+
+MIT
+
+--------------
+
+Made with ❤ and coffee
