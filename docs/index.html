@@ -23,9 +23,20 @@
       section.cover .cover-main > p:last-child a:last-child:hover {
         color: #ffffff !important;
       }
+
+      .app-sub-sidebar li:before {
+        opacity: 0;
+      }
+
+      .sidebar-nav > ul > li > a {
+        font-weight: bold;
+      }
     </style>
     <script>
       window.$docsify = {
+        auto2top: true,
+        loadSidebar: true,
+        subMaxLevel: 3,
         coverpage: true,
         onlyCover: true,
         logo: 'sidebarLogo.png',

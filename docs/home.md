@@ -12,7 +12,7 @@ Formalizer is a React Hooks based form validation library made for humans. The c
 
 Simple, tiny, extensible, intuitive, documented, fully tested, magical.
 
-## Installation
+# Installation
 
 ```sh
 yarn add formalizer
@@ -24,7 +24,7 @@ or
 npm install formalizer --save
 ```
 
-## Usage
+# Usage
 
 ```jsx
 import { useForm, mustMatch } from 'formalizer';
@@ -49,7 +49,7 @@ const UserProfileComponent = () => {
 };
 ```
 
-## Tutorial
+# Tutorial
 
 Let's add validations to following signup form:
 
@@ -69,7 +69,7 @@ For this tutorial, we have a few requirements we want to implement:
 - We also want password to be required, to contain the uppercase letter Z;
 - Finally, the password confirmation field must match match the password.
 
-### Setting up the form
+## Setting up the form
 
 First, since we will be adding Formalizer to this form, we won't need the `name` attribute anymore. Let's clean it up:
 
@@ -92,7 +92,7 @@ const { useInput } = useForm(formRef);
 <form ref={formRef}>...</form>;
 ```
 
-### Adding the email field validations
+## Adding the email field validations
 
 We then can use the `useInput` field to add validations to the inputs. Let's make both the email and password fields required:
 
@@ -120,7 +120,7 @@ We want to use more than one validator, so use an array:
 <input {...useInput('email', ['isRequired', 'isEmail'])} />
 ```
 
-### Adding password field validations
+## Adding password field validations
 
 Now we know how to get the password field required. But we also want this field to contain the letter Z. For this special requirement, we will write a custom validator:
 
@@ -155,7 +155,7 @@ const mustContainZValidator = {
 />;
 ```
 
-### Adding password confirmation validation
+## Adding password confirmation validation
 
 Our last validation requirement is to have the password confirmation field match the password field. We will start implementing another custom validator to illustrate how this could be done from scratch. The validator function receives two parameters: a `value`, which we have seen above, and an `options` object. This options object has a property called `formData`, which has the value for every field in the form. We can use that to create this custom validator:
 
@@ -185,7 +185,7 @@ import { mustMatch } from 'formalizer';
 
 The last thing left to do, is display the validation errors when they occur.
 
-### Displaying validation errors
+## Displaying validation errors
 
 To display the validation errors, we add a `span` elements to our form:
 
@@ -237,7 +237,7 @@ We then use it to display the errors:
 
 That's it!
 
-### Final Result
+## Final Result
 
 This is how our fully validated form looks like:
 
