@@ -2,6 +2,7 @@ import React, { createRef, useRef } from 'react';
 import { mount } from 'enzyme';
 import {
   DEFAULT_VALIDATION_ERROR_MESSAGE,
+  mustMatch,
   useForm,
   ValidatorDefaults,
   ValidatorSettings
@@ -1325,6 +1326,180 @@ describe('Form Validation', () => {
     );
   });
 
+  it('Custom validators are given the complete form data as one of its options object properties', () => {
+    const customValidator = {
+      isFormDataPresent: {
+        validator: (value, options) => {
+          expect(options).not.toBeNull();
+          expect(options.formData).not.toBeNull();
+          expect(options.formData.field1).not.toBeNull();
+          expect(options.formData.field2).not.toBeNull();
+          expect(options.formData.field1).toBe('test1');
+          expect(options.formData.field2).toBe('test2');
+          return true;
+        }
+      }
+    };
+
+    const FormWrapper = () => {
+      const formRef = useRef(null);
+      formInfo = useForm(
+        formRef,
+        { field1: 'test1', field2: 'test2' },
+        submitHandler
+      );
+      return buildTestForm(formRef, formInfo, customValidator, []);
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    // assertions on the formData will be executed when the validator is executed
+    wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      undefined,
+      undefined,
+      true,
+      false
+    );
+  });
+
+  [
+    { name: 'null', options: null },
+    { name: 'undefined', options: undefined },
+    { name: 'empty', options: {} }
+  ].forEach(o =>
+    it(`Custom validators are given the complete form data with the options object even if an ${o.name} options has been specified`, () => {
+      const customValidator = {
+        isFormDataPresent: {
+          options: o.options,
+          validator: (value, options) => {
+            expect(options).not.toBeNull();
+            expect(options.formData).not.toBeNull();
+            expect(options.formData.field1).not.toBeNull();
+            expect(options.formData.field2).not.toBeNull();
+            expect(options.formData.field1).toBe('test1');
+            expect(options.formData.field2).toBe('test2');
+            return true;
+          }
+        }
+      };
+
+      const FormWrapper = () => {
+        const formRef = useRef(null);
+        formInfo = useForm(
+          formRef,
+          { field1: 'test1', field2: 'test2' },
+          submitHandler
+        );
+        return buildTestForm(formRef, formInfo, customValidator, []);
+      };
+
+      wrapper = mount(<FormWrapper />);
+
+      expect(formInfo.isValid).toBe(true);
+
+      // assertions on the formData will be executed when the validator is executed
+      wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+      performAssertions(
+        wrapper,
+        formInfo,
+        submitHandler,
+        undefined,
+        undefined,
+        true,
+        false
+      );
+    })
+  );
+
+  it('Global validators are given the complete form data as one of its options object properties', () => {
+    ValidatorDefaults.isFormDataPresent = {
+      validator: (value, options) => {
+        expect(options).not.toBeNull();
+        expect(options.formData).not.toBeNull();
+        expect(options.formData.field1).not.toBeNull();
+        expect(options.formData.field2).not.toBeNull();
+        expect(options.formData.field1).toBe('test1');
+        expect(options.formData.field2).toBe('test2');
+        return true;
+      }
+    };
+
+    const FormWrapper = () => {
+      const formRef = useRef(null);
+      formInfo = useForm(
+        formRef,
+        { field1: 'test1', field2: 'test2' },
+        submitHandler
+      );
+      return buildTestForm(formRef, formInfo, 'isFormDataPresent', []);
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    // assertions on the formData will be executed when the validator is executed
+    wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      undefined,
+      undefined,
+      true,
+      false
+    );
+  });
+
+  it('Can use built in mustMatch validator and it works correctly', () => {
+    const FormWrapper = () => {
+      const formRef = useRef(null);
+      formInfo = useForm(
+        formRef,
+        { field1: 'test', field2: '' },
+        submitHandler
+      );
+      return buildTestForm(formRef, formInfo, [], mustMatch('field1'));
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      undefined,
+      'Must match the field1 field.',
+      false,
+      false
+    );
+
+    // type the same content into field2, and the error should go away
+    typeIntoInput(wrapper.find('[name="field2"]'), 'test');
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      undefined,
+      undefined,
+      true,
+      false
+    );
+  });
+
   it(`Correct error is thrown when user-provided submit handler throws an exception`, () => {
     window.onerror = jest.fn();
     const errorSpy = jest.spyOn(window, 'onerror').mockImplementation(() => {});
@@ -1613,19 +1788,18 @@ describe('Form Validation', () => {
       validator: false,
       type: 'bare boolean type',
       error:
-        'Formalizer: the validator value passed into useInput must be a single string or an array.'
+        'Formalizer: the validator value passed into useInput must be a single string, a single object or an array.'
     },
     {
       validator: 123,
       type: 'bare numeric type',
       error:
-        'Formalizer: the validator value passed into useInput must be a single string or an array.'
+        'Formalizer: the validator value passed into useInput must be a single string, a single object or an array.'
     },
     {
       validator: null,
       type: 'bare null type',
-      error:
-        'Formalizer: the validator value passed into useInput must be a single string or an array.'
+      error: 'Formalizer: validators must be of string or object type.'
     },
     {
       validator: [false],

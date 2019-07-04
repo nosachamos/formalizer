@@ -113,11 +113,11 @@ type Options = {
   formData: { [key: string]: string };
 };
 
-export const mustMatchField = (
+export const mustMatch = (
   fieldName: string
 ): { [key: string]: InputValidationConfig } => ({
   mustMatchField: {
-    errorMessage: 'Must match the password.',
+    errorMessage: `Must match the ${fieldName} field.`,
     validator: (value: string, options: Options) =>
       value === options.formData[fieldName]
   }
@@ -142,11 +142,14 @@ export const useFormInput = ({
   const handleValidation = useCallback(
     (inputValue: any) => {
       const validationToProcess =
-        typeof validation === 'string' ? [validation] : validation;
+        typeof validation === 'string' ||
+        (typeof validation === 'object' && !Array.isArray(validation))
+          ? [validation]
+          : validation;
 
       if (!Array.isArray(validationToProcess)) {
         throw new Error(
-          'Formalizer: the validator value passed into useInput must be a single string or an array.'
+          'Formalizer: the validator value passed into useInput must be a single string, a single object or an array.'
         );
       }
 
@@ -556,6 +559,8 @@ export const validate = (
 
     if (!configs.options) {
       configs.options = { formData };
+    } else if (!configs.options.formData) {
+      configs.options = { ...configs.options, formData };
     }
 
     switch (property) {
