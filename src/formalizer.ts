@@ -108,10 +108,10 @@ interface InputAttributes {
   invalidAttr?: object;
 }
 
-type Options = {
+interface Options {
   [key: string]: any;
   formData: { [key: string]: string };
-};
+}
 
 export const mustMatch = (
   fieldName: string
