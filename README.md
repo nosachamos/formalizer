@@ -27,7 +27,7 @@ npm install formalizer --save
 ## Usage
 
 ```jsx harmony
-import { useForm, mustMatchField } from 'formalizer';
+import { useForm, mustMatch } from 'formalizer';
 
 const UserProfileComponent = () => {
   const formRef = useRef(null);
@@ -124,10 +124,6 @@ We want to use more than one validator, so use an array:
 
 Now we know how to get the password field required. But we also want this field to contain the letter Z. For this special requirement, we will write a custom validator:
 
-const mustContainLetterZ = {
-  
-}
-
 ```jsx harmony
 <input
   type="password"
@@ -180,11 +176,11 @@ const mustMatchPasswordValidator = {
 But because this is such a common use-case, we provide a validator out of the box:
 
 ```jsx harmony
-import { mustMatchField } from 'formalizer';
+import { mustMatch } from 'formalizer';
 
 ...
 
-<input type="password" {...useInput('passConfirmation', mustMatchField('password')) } />
+<input type="password" {...useInput('passConfirmation', mustMatch('password')) } />
 ```
 
 The last thing left to do, is display the validation errors when they occur.
@@ -202,8 +198,8 @@ To display the validation errors, we add a `span` elements to our form:
   mustContainZValidator ]) } />
   <span></span>
 
-  <input type="password" {...useInput('passConfirmation',
-  mustMatchField('password')) } />
+  <input type="password" {...useInput('passConfirmation', mustMatch('password'))
+  } />
   <span></span>
 
   <button type="submit">Submit</button>
@@ -231,7 +227,7 @@ We then use it to display the errors:
 
   <input
     type="password"
-    {...useInput('passConfirmation', mustMatchField('password'))}
+    {...useInput('passConfirmation', mustMatch('password'))}
   />
   <span>{errors['passConfirmation']}</span>
 
@@ -265,7 +261,7 @@ const mustContainZValidator = {
 
   <input
     type="password"
-    {...useInput('passConfirmation', mustMatchField('password'))}
+    {...useInput('passConfirmation', mustMatch('password'))}
   />
   <span>{errors['passConfirmation']}</span>
 
