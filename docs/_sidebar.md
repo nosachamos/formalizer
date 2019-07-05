@@ -1,4 +1,5 @@
 - [Getting Started](/home.md)
 - [Built-in Validators](builtin-validators.md)
 - [Custom Validators](custom-validators.md)
+- [Global Validators](global-validators.md)
 - [Examples](examples.md)

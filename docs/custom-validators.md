@@ -6,13 +6,13 @@ Writing custom validators, or customizing built-in ones is quick and easy.
 
 You can define a custom validator like so:
 
-```jxs
+```jsx
 // define somewhere in your app
 const mustContainZValidator = {
-    mustContainLetterZ: {
-        errorMessage: 'Must contain the letter z',
-        validator: (value) => !!value && value.toLowerCase().indexOf('z') > -1
-    }
+  mustContainLetterZ: {
+    errorMessage: 'Must contain the letter z',
+    validator: value => !!value && value.toLowerCase().indexOf('z') > -1
+  }
 };
 ```
 

@@ -68,11 +68,35 @@ In this case, providing the `isRequired` validator first allows for its error me
     'isRequired',
     {
       mustContainZValidator: {
-        options: {
-          errorMessage: 'Not valid: please make sure it contains the letter z.'
-        }
+        errorMessage: 'Not valid: please make sure it contains the letter z.'
       }
     }
   ])}
+/>
+```
+
+#### Overriding a global validator's error message
+
+Because overriding the error message is such a common use case, you can take a shortcut to do this and assign the new error message directly to the validator:
+
+```jsx
+<input
+  type="password"
+  {...useInput('password', {
+    mustContainZValidator: 'Must contain the letter z'
+  })}
+/>
+```
+
+#### Overriding a third-party validator's error message
+
+You can also override the error message of a third party validator. To do that, simply specify which validator you are customizing using the `validator` property:
+
+```jsx
+<input
+  type="password"
+  {...useInput('password', {
+    isEmail: 'Please enter a valid email address'
+  })}
 />
 ```
