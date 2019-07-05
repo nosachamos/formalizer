@@ -24,9 +24,9 @@ For built in validators, the value can simply be the desired error message:
 }
 
 Alternatively, you may provide error messages to be used with all validators of a given type. To do that, set each
-validator as a key on the ValidatorDefaults object:
+validator as a key on the GlobalValidators object:
 
-ValidatorDefaults.startsWithLetterZ = {
+GlobalValidators.startsWithLetterZ = {
     errorMessage: "Must start with the letter Z",
     validator: (value) => value && value.length > 0 && value.charAt(0).toLowerCase() === 'z';
 };
@@ -52,7 +52,7 @@ export const ValidatorSettings: ValidatorSettingsType = {
   invalidHelperTextAttr: undefined
 };
 
-export const ValidatorDefaults: {
+export const GlobalValidators: {
   [key: string]: InputValidationConfig | string;
 } = {
   isRequired: 'This field is required.'
@@ -434,31 +434,31 @@ export const validate = (
     let negate: boolean | undefined = false;
     let validatorFunction: ValidatorFunction | undefined = void 0;
 
-    if (ValidatorDefaults[property]) {
+    if (GlobalValidators[property]) {
       // making sure the given validator is of supported type
       if (
-        ValidatorDefaults[property] === null ||
-        (typeof ValidatorDefaults[property] !== 'string' &&
-          typeof ValidatorDefaults[property] !== 'object') ||
-        Array.isArray(ValidatorDefaults[property])
+        GlobalValidators[property] === null ||
+        (typeof GlobalValidators[property] !== 'string' &&
+          typeof GlobalValidators[property] !== 'object') ||
+        Array.isArray(GlobalValidators[property])
       ) {
         throw new Error(
           'Formalizer: validators must be of string or object type.'
         );
       }
 
-      if (typeof ValidatorDefaults[property] === 'string') {
+      if (typeof GlobalValidators[property] === 'string') {
         if (loadValidatorDependency()) {
           // @ts-ignore
           validatorFunction = validator[
-            ValidatorDefaults[property] as string
+            GlobalValidators[property] as string
           ] as ValidatorFunction;
         }
-        errorMsg = ValidatorDefaults[property] as string;
+        errorMsg = GlobalValidators[property] as string;
         negate = false;
       } else {
         // can only be an object at this point
-        const propValidator = ValidatorDefaults[
+        const propValidator = GlobalValidators[
           property
         ] as InputValidationConfig;
 

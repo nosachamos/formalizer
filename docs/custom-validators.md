@@ -56,7 +56,7 @@ Must be provided.
 
 The error message to display when this validator rejects a value.
 
-If none is provided, a generic error message is used instead.
+If none is provided, a generic error message is used instead. You can access this generic message by importing the `DEFAULT_VALIDATION_ERROR_MESSAGE` constant.
 
 ### negate
 

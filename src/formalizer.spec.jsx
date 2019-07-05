@@ -4,7 +4,7 @@ import {
   DEFAULT_VALIDATION_ERROR_MESSAGE,
   mustMatch,
   useForm,
-  ValidatorDefaults,
+  GlobalValidators,
   ValidatorSettings
 } from './formalizer';
 import { act } from '@testing-library/react';
@@ -386,7 +386,7 @@ describe('Form Validation', () => {
 
   it('Custom error message can be added to built in isRequired validator', () => {
     const CUSTOM_ERROR_MESSAGE = "Field can't be left empty";
-    ValidatorDefaults.isRequired = CUSTOM_ERROR_MESSAGE;
+    GlobalValidators.isRequired = CUSTOM_ERROR_MESSAGE;
 
     const FormWrapper = () => {
       const formRef = useRef(null);
@@ -416,7 +416,7 @@ describe('Form Validation', () => {
     );
 
     // restoring the default message
-    ValidatorDefaults.isRequired = 'This field is required.';
+    GlobalValidators.isRequired = 'This field is required.';
   });
 
   it('Default error attribute is added to input', () => {
@@ -708,7 +708,7 @@ describe('Form Validation', () => {
 
   it('Custom built-in validator function that uses custom options can be provided', () => {
     // adding a custom global validator which changes behavior based on given option
-    ValidatorDefaults.mustNotBeEmpty = {
+    GlobalValidators.mustNotBeEmpty = {
       errorMessage: 'Must not be empty',
       validator: 'isEmpty',
       options: { ignore_whitespace: true },
@@ -764,7 +764,7 @@ describe('Form Validation', () => {
 
   it('Custom global validator function that uses custom options can be provided', () => {
     // adding a custom global validator which changes behavior based on given option
-    ValidatorDefaults.mustContainLetterZ = {
+    GlobalValidators.mustContainLetterZ = {
       errorMessage: 'Must contain the letter z',
       validator: (value, options) => {
         if (options['ignoreCase']) {
@@ -910,7 +910,7 @@ describe('Form Validation', () => {
       const originalError = console.error;
       console.error = jest.fn(); // prevents React 16 error boundary warning
 
-      ValidatorDefaults.isEmail = invalidValidatorDef;
+      GlobalValidators.isEmail = invalidValidatorDef;
 
       const formRef = createRef();
       const FormWrapper = () => {
@@ -942,7 +942,7 @@ describe('Form Validation', () => {
   );
 
   it("Custom global validation using a string validator (referring to one of validator's functions) can be provided", () => {
-    ValidatorDefaults.mustBeEmail = {
+    GlobalValidators.mustBeEmail = {
       errorMessage: 'This needs to be an email.',
       validator: 'isEmail'
     };
@@ -1037,7 +1037,7 @@ describe('Form Validation', () => {
   });
 
   it('Custom global validation using a string validator can have its message overridden', () => {
-    ValidatorDefaults.mustBeEmail = {
+    GlobalValidators.mustBeEmail = {
       errorMessage: 'This needs to be an email.',
       validator: 'isEmail'
     };
@@ -1092,7 +1092,7 @@ describe('Form Validation', () => {
   });
 
   it('Custom global validation using a string validator can have its message overridden by direct string assignment', () => {
-    ValidatorDefaults.mustBeEmail = {
+    GlobalValidators.mustBeEmail = {
       errorMessage: 'This needs to be an email.',
       validator: 'isEmail'
     };
@@ -1141,7 +1141,7 @@ describe('Form Validation', () => {
   });
 
   it('Can specify global validator by assigning the validator config to its string name', () => {
-    ValidatorDefaults.mustBeEmail = {
+    GlobalValidators.mustBeEmail = {
       errorMessage: 'This needs to be an email.',
       validator: 'isEmail'
     };
@@ -1190,7 +1190,7 @@ describe('Form Validation', () => {
   });
 
   it('Can specify global validator without custom message by assigning the validator config to its string name', () => {
-    ValidatorDefaults.mustBeEmail = {
+    GlobalValidators.mustBeEmail = {
       validator: 'isEmail'
     };
 
@@ -1239,7 +1239,7 @@ describe('Form Validation', () => {
 
   it('Can specify built-in validator by assigning the validator config to its string name', () => {
     // making sure there is not global validator for this
-    delete ValidatorDefaults.mustBeEmail;
+    delete GlobalValidators.mustBeEmail;
 
     const FormWrapper = () => {
       const formRef = useRef(null);
@@ -1286,7 +1286,7 @@ describe('Form Validation', () => {
 
   it('Can specify built-in validator directly by its string name', () => {
     // making sure there is not global validator for this
-    delete ValidatorDefaults.isEmail;
+    delete GlobalValidators.isEmail;
 
     const FormWrapper = () => {
       const formRef = useRef(null);
@@ -1420,7 +1420,7 @@ describe('Form Validation', () => {
   );
 
   it('Global validators are given the complete form data as one of its options object properties', () => {
-    ValidatorDefaults.isFormDataPresent = {
+    GlobalValidators.isFormDataPresent = {
       validator: (value, options) => {
         expect(options).not.toBeNull();
         expect(options.formData).not.toBeNull();
@@ -1537,7 +1537,7 @@ describe('Form Validation', () => {
 
   it('Can specify built-in validator without a form submit handler', () => {
     // making sure there is not global validator for this
-    delete ValidatorDefaults.mustBeEmail;
+    delete GlobalValidators.mustBeEmail;
 
     const formRef = createRef();
     const FormWrapper = () => {
@@ -1754,7 +1754,7 @@ describe('Form Validation', () => {
     }
   ].forEach(v =>
     it(`Handle global validator of invalid ${v.type}`, () => {
-      ValidatorDefaults.invalidValidator = v.validator;
+      GlobalValidators.invalidValidator = v.validator;
 
       const FormWrapper = () => {
         const formRef = useRef(null);
@@ -1881,8 +1881,8 @@ describe('Form Validation', () => {
     it(`Handle missing optional validator library dependency correctly when using ${v.name}`, () => {
       jest.mock('validator', () => void 0);
 
-      // making sure we don't have a default validator named isEmail
-      delete ValidatorDefaults.isEmail;
+      // making sure we don't have a global validator named isEmail
+      delete GlobalValidators.isEmail;
 
       // attempt to use the missing dependency
       const FormWrapper = () => {
@@ -1926,8 +1926,8 @@ describe('Form Validation', () => {
     const originalPackageJson = require('validator/package.json');
     jest.mock('validator/package.json', () => ({ version: '1.0.0' }));
 
-    // making sure we don't have a default validator named isEmail
-    delete ValidatorDefaults.isEmail;
+    // making sure we don't have a global validator named isEmail
+    delete GlobalValidators.isEmail;
 
     // attempt to use the missing dependency
     const FormWrapper = () => {

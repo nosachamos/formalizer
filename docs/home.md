@@ -142,7 +142,7 @@ Now we know how to get the password field required. But we also want this field 
 You can, of course, factor that validator out for readability or reuse:
 
 ```jsx
-const mustContainZValidator = {
+const containsZLetter = {
   mustContainZ: {
     errorMessage: 'Must contain letter Z.',
     validator: value => value && value.indexOf('Z') > -1
@@ -151,7 +151,7 @@ const mustContainZValidator = {
 
 <input
   type="password"
-  {...useInput('password', ['isRequired', mustContainZValidator])}
+  {...useInput('password', ['isRequired', containsZLetter])}
 />;
 ```
 
@@ -189,17 +189,21 @@ The last thing left to do, is display the validation errors when they occur.
 
 To display the validation errors, we add a `span` elements to our form:
 
-```html
+```jsx
 <form ref="{formRef}">
   <input {...useInput('email', 'isRequired')} />
   <span></span>
 
-  <input type="password" {...useInput('password', [ 'isRequired',
-  mustContainZValidator ]) } />
+  <input
+    type="password"
+    {...useInput('password', ['isRequired', containsZLetter])}
+  />
   <span></span>
 
-  <input type="password" {...useInput('passConfirmation', mustMatch('password'))
-  } />
+  <input
+    type="password"
+    {...useInput('passConfirmation', mustMatch('password'))}
+  />
   <span></span>
 
   <button type="submit">Submit</button>
@@ -221,7 +225,7 @@ We then use it to display the errors:
 
   <input
     type="password"
-    {...useInput('password', ['isRequired', mustContainZValidator])}
+    {...useInput('password', ['isRequired', containsZLetter])}
   />
   <span>{errors['password']}</span>
 
@@ -242,7 +246,7 @@ That's it!
 This is how our fully validated form looks like:
 
 ```jsx
-const mustContainZValidator = {
+const containsZLetter = {
   mustContainZ: {
     errorMessage: 'Must contain letter Z.',
     validator: value => value && value.indexOf('Z') > -1
@@ -255,7 +259,7 @@ const mustContainZValidator = {
 
   <input
     type="password"
-    {...useInput('password', ['isRequired', mustContainZValidator])}
+    {...useInput('password', ['isRequired', containsZLetter])}
   />
   <span>{errors['password']}</span>
 
