@@ -24,14 +24,28 @@ or
 npm install formalizer --save
 ```
 
-# Usage
+# In a Nutshell
+
+Use the `useFormalizer` hook to gain access to the `useInput` hook, the errors currently in your form, whether the form is valid or not [and more](/useform-hook).
+
+Then, use the `useInput` to [setup validations](/examples) on your form inputs.
+
+Formalizer offers two [built in validators](/builtin-validators) out-of-the-box and it integrates with the awesome [validator](https://www.npmjs.com/package/validator) library seamlessly, which means if you install it [you can use all of their validators](/third-party-validators).
+
+But know that writing your own [custom validators](/custom-validators) is super easy.
+
+Also, you may create [global validators](/global-validators) so that they accessible throughout your app. Doing so helps keep your code DRY and facilitates maintaining it.
+
+Finally, if you use [Material UI](https://material-ui.com/) you may like the fact Formalizer [integrates](/material-ui) with it.
+
+# Sample Usage
 
 ```jsx
-import { useForm, mustMatch } from 'formalizer';
+import { useFormalizer, mustMatch } from 'formalizer';
 
 const UserProfileComponent = () => {
   const formRef = useRef(null);
-  const { useInput, errors, isValid } = useForm(formRef);
+  const { useInput, errors, isValid } = useFormalizer(formRef);
 
   return (
     <form ref={formRef}>
@@ -49,226 +63,33 @@ const UserProfileComponent = () => {
 };
 ```
 
-# Tutorial
+For a complete guide on how each of these pieces work, see our [tutorial](/tutorial).
 
-Let's add validations to following signup form:
+# Contributing
 
-```html
-<form>
-  <input name="email" />
-  <input type="password" name="password" />
-  <input type="password" name="passwordConfirmation" />
+Contributions are very welcome!
 
-  <button type="submit">Submit</button>
-</form>
-```
+We follow the "fork-and-pull" Git workflow.
 
-For this tutorial, we have a few requirements we want to implement:
+1. Fork the repo on GitHub
+2. Clone the project to your own machine
+3. Work on your fork
+   1. Make your changes and additions
+   2. Change or add tests if needed
+   3. Run tests and make sure they pass
+   4. Add changes to README.md if needed
+4. Commit changes to your own branch
+5. **Make sure** you merge the latest from "upstream" and resolve conflicts if there is any
+6. Repeat step 3(3) above
+7. Push your work back up to your fork
+8. Submit a Pull Request so that we can review and merge your changes
 
-- The email field should be required, and its value must be a valid email address;
-- We also want password to be required, to contain the uppercase letter Z;
-- Finally, the password confirmation field must match match the password.
+## Running tests
 
-## Setting up the form
+This library is fully tested using Jest. PRs must include tests in order to be merged.
 
-First, since we will be adding Formalizer to this form, we won't need the `name` attribute anymore. Let's clean it up:
-
-```html
-<form>
-  <input />
-  <input type="password" />
-  <input type="password" />
-
-  <button type="submit">Submit</button>
-</form>
-```
-
-We use the `useForm` hook to get a reference to everything we need. It takes a reference to the form you will be validating:
-
-```jsx
-const formRef = useRef(null);
-const { useInput } = useForm(formRef);
-
-<form ref={formRef}>...</form>;
-```
-
-## Adding the email field validations
-
-We then can use the `useInput` field to add validations to the inputs. Let's make both the email and password fields required:
-
-```jsx
-<form ref={formRef}>
-  <input {...useInput('email', 'isRequired')} />
-  <input type="password" />
-  <input type="password" />
-
-  <button type="submit">Submit</button>
-</form>
-```
-
-We also want the email field to be a valid email. To validate this, we will take advantage of our integration with the `validator` library:
+To run the tests:
 
 ```sh
-npm install validator --save
-```
-
-Now we can use the `isEmail` or any other of their excellent validators.
-
-We want to use more than one validator, so use an array:
-
-```jsx
-<input {...useInput('email', ['isRequired', 'isEmail'])} />
-```
-
-## Adding password field validations
-
-Now we know how to get the password field required. But we also want this field to contain the letter Z. For this special requirement, we will write a custom validator:
-
-```jsx
-<input
-  type="password"
-  {...useInput('password', [
-    'isRequired',
-    {
-      mustContainZ: {
-        errorMessage: 'Must contain letter Z.',
-        validator: value => value && value.indexOf('Z') > -1
-      }
-    }
-  ])}
-/>
-```
-
-You can, of course, factor that validator out for readability or reuse:
-
-```jsx
-const containsZLetter = {
-  mustContainZ: {
-    errorMessage: 'Must contain letter Z.',
-    validator: value => value && value.indexOf('Z') > -1
-  }
-};
-
-<input
-  type="password"
-  {...useInput('password', ['isRequired', containsZLetter])}
-/>;
-```
-
-## Adding password confirmation validation
-
-Our last validation requirement is to have the password confirmation field match the password field. We will start implementing another custom validator to illustrate how this could be done from scratch. The validator function receives two parameters: a `value`, which we have seen above, and an `options` object. This options object has a property called `formData`, which has the value for every field in the form. We can use that to create this custom validator:
-
-```jsx
-const mustMatchPasswordValidator = {
-  mustMatchPassword: {
-    errorMessage: 'Must match the password.',
-    validator: (value, options) => value === options.formData.password
-  }
-};
-
-<input
-  type="password"
-  {...useInput('passConfirmation', mustMatchPasswordValidator)}
-/>;
-```
-
-But because this is such a common use-case, we provide a validator out of the box:
-
-```jsx
-import { mustMatch } from 'formalizer';
-
-...
-
-<input type="password" {...useInput('passConfirmation', mustMatch('password')) } />
-```
-
-The last thing left to do, is display the validation errors when they occur.
-
-## Displaying validation errors
-
-To display the validation errors, we add a `span` elements to our form:
-
-```jsx
-<form ref="{formRef}">
-  <input {...useInput('email', 'isRequired')} />
-  <span></span>
-
-  <input
-    type="password"
-    {...useInput('password', ['isRequired', containsZLetter])}
-  />
-  <span></span>
-
-  <input
-    type="password"
-    {...useInput('passConfirmation', mustMatch('password'))}
-  />
-  <span></span>
-
-  <button type="submit">Submit</button>
-</form>
-```
-
-The `useForm` hook also returns an `errors` object which contains the errors currently in the form:
-
-```jsx
-const { useInput, errors } = useForm(formRef);
-```
-
-We then use it to display the errors:
-
-```jsx
-<form ref={formRef}>
-  <input {...useInput('email', 'isRequired')} />
-  <span>{errors['email']}</span>
-
-  <input
-    type="password"
-    {...useInput('password', ['isRequired', containsZLetter])}
-  />
-  <span>{errors['password']}</span>
-
-  <input
-    type="password"
-    {...useInput('passConfirmation', mustMatch('password'))}
-  />
-  <span>{errors['passConfirmation']}</span>
-
-  <button type="submit">Submit</button>
-</form>
-```
-
-That's it!
-
-## Final Result
-
-This is how our fully validated form looks like:
-
-```jsx
-const containsZLetter = {
-  mustContainZ: {
-    errorMessage: 'Must contain letter Z.',
-    validator: value => value && value.indexOf('Z') > -1
-  }
-};
-
-<form ref={formRef}>
-  <input {...useInput('email', 'isRequired')} />
-  <span>{errors['email']}</span>
-
-  <input
-    type="password"
-    {...useInput('password', ['isRequired', containsZLetter])}
-  />
-  <span>{errors['password']}</span>
-
-  <input
-    type="password"
-    {...useInput('passConfirmation', mustMatch('password'))}
-  />
-  <span>{errors['passConfirmation']}</span>
-
-  <button type="submit">Submit</button>
-</form>;
+npm test
 ```

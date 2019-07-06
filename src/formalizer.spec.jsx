@@ -3,7 +3,7 @@ import { mount } from 'enzyme';
 import {
   DEFAULT_VALIDATION_ERROR_MESSAGE,
   mustMatch,
-  useForm,
+  useFormalizer,
   GlobalValidators,
   ValidatorSettings
 } from './formalizer';
@@ -209,7 +209,7 @@ describe('Form Validation', () => {
     it(data.title, () => {
       const FormWrapper = () => {
         const formRef = useRef(null);
-        formInfo = useForm(
+        formInfo = useFormalizer(
           formRef,
           { field1: data.field1Value, field2: data.field2Value },
           submitHandler,
@@ -244,7 +244,7 @@ describe('Form Validation', () => {
   it('Validators can be negated', () => {
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: '', field2: '' },
         submitHandler,
@@ -295,7 +295,7 @@ describe('Form Validation', () => {
   it('Can handle no validations given: form is always valid', () => {
     const formRef = createRef();
     const FormWrapper = () => {
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: '', field2: '' },
         submitHandler,
@@ -343,7 +343,7 @@ describe('Form Validation', () => {
   it('Can handle no fields to validate given: form is always valid', () => {
     const formRef = createRef();
     const FormWrapper = () => {
-      formInfo = useForm(formRef, {}, submitHandler, null);
+      formInfo = useFormalizer(formRef, {}, submitHandler, null);
 
       return (
         <form ref={formRef}>
@@ -390,7 +390,7 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: '', field2: '' },
         submitHandler,
@@ -422,7 +422,7 @@ describe('Form Validation', () => {
   it('Default error attribute is added to input', () => {
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'testValue', field2: '' },
         submitHandler
@@ -452,7 +452,7 @@ describe('Form Validation', () => {
   it('Custom error attribute is added to input', () => {
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: '', field2: 'testValue' },
         submitHandler,
@@ -488,7 +488,7 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: '', field2: 'testValue' },
         submitHandler
@@ -522,7 +522,7 @@ describe('Form Validation', () => {
   it('Form submission is prevented when there were errors in the form', () => {
     const formRef = createRef();
     const FormWrapper = () => {
-      formInfo = useForm(formRef, { field1: '', field2: '' });
+      formInfo = useFormalizer(formRef, { field1: '', field2: '' });
       return buildTestForm(formRef, formInfo, ['isRequired'], []);
     };
 
@@ -548,7 +548,7 @@ describe('Form Validation', () => {
   it('Custom validator function can be provided', () => {
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test', field2: '' },
         submitHandler
@@ -589,7 +589,11 @@ describe('Form Validation', () => {
   it('Custom validator function mixed with built in validator by key can be provided together', () => {
     const formRef = createRef();
     const FormWrapper = () => {
-      formInfo = useForm(formRef, { field1: '', field2: '' }, submitHandler);
+      formInfo = useFormalizer(
+        formRef,
+        { field1: '', field2: '' },
+        submitHandler
+      );
       return buildTestForm(
         formRef,
         formInfo,
@@ -718,7 +722,11 @@ describe('Form Validation', () => {
     // first we test without giving options
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(formRef, { field1: '', field2: '' }, submitHandler);
+      formInfo = useFormalizer(
+        formRef,
+        { field1: '', field2: '' },
+        submitHandler
+      );
       return buildTestForm(formRef, formInfo, ['mustNotBeEmpty'], []);
     };
 
@@ -779,7 +787,7 @@ describe('Form Validation', () => {
       // first we test without giving options
       const FormWrapper = () => {
         const formRef = useRef(null);
-        formInfo = useForm(
+        formInfo = useFormalizer(
           formRef,
           { field1: 'test', field2: '' },
           submitHandler
@@ -831,7 +839,7 @@ describe('Form Validation', () => {
       // now test with the ignoreCase option and validate upper case Z is accepted
       const FormWrapper = () => {
         const formRef = useRef(null);
-        formInfo = useForm(
+        formInfo = useFormalizer(
           formRef,
           { field1: 'test', field2: '' },
           submitHandler
@@ -914,7 +922,7 @@ describe('Form Validation', () => {
 
       const formRef = createRef();
       const FormWrapper = () => {
-        formInfo = useForm(
+        formInfo = useFormalizer(
           formRef,
           { field1: 'test', field2: '' },
           submitHandler
@@ -949,7 +957,7 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test', field2: '' },
         submitHandler
@@ -988,7 +996,7 @@ describe('Form Validation', () => {
   it("Custom validation using a string validator (referring to one of validator's functions) can be provided", () => {
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test', field2: '' },
         submitHandler
@@ -1044,7 +1052,7 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test', field2: '' },
         submitHandler
@@ -1099,7 +1107,7 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test', field2: '' },
         submitHandler
@@ -1148,7 +1156,7 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test', field2: '' },
         submitHandler
@@ -1196,7 +1204,7 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test', field2: '' },
         submitHandler
@@ -1243,7 +1251,7 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test', field2: '' },
         submitHandler
@@ -1290,7 +1298,7 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test', field2: '' },
         submitHandler
@@ -1343,7 +1351,7 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test1', field2: 'test2' },
         submitHandler
@@ -1392,7 +1400,7 @@ describe('Form Validation', () => {
 
       const FormWrapper = () => {
         const formRef = useRef(null);
-        formInfo = useForm(
+        formInfo = useFormalizer(
           formRef,
           { field1: 'test1', field2: 'test2' },
           submitHandler
@@ -1434,7 +1442,7 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test1', field2: 'test2' },
         submitHandler
@@ -1463,7 +1471,7 @@ describe('Form Validation', () => {
   it('Can use built in mustMatch validator and it works correctly', () => {
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test', field2: '' },
         submitHandler
@@ -1510,7 +1518,7 @@ describe('Form Validation', () => {
 
     const formRef = createRef();
     const FormWrapper = () => {
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'test', field2: '' },
         submitHandlerThatThrows
@@ -1541,7 +1549,7 @@ describe('Form Validation', () => {
 
     const formRef = createRef();
     const FormWrapper = () => {
-      formInfo = useForm(formRef, {
+      formInfo = useFormalizer(formRef, {
         field1: 'valid.email@email.com',
         field2: ''
       });
@@ -1580,7 +1588,7 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: '', field2: 'testValue' },
         submitHandler,
@@ -1623,7 +1631,7 @@ describe('Form Validation', () => {
   it('Fields are updated when form value is set programmatically', () => {
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: '', field2: 'testValue' },
         submitHandler,
@@ -1661,7 +1669,7 @@ describe('Form Validation', () => {
   it('Handle unknown validator properly', () => {
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: '', field2: 'testValue' },
         submitHandler,
@@ -1702,7 +1710,7 @@ describe('Form Validation', () => {
     it(`Handle validator of invalid type "${v.type}"`, () => {
       const FormWrapper = () => {
         const formRef = useRef(null);
-        formInfo = useForm(
+        formInfo = useFormalizer(
           formRef,
           { field1: '', field2: 'testValue' },
           submitHandler,
@@ -1758,7 +1766,7 @@ describe('Form Validation', () => {
 
       const FormWrapper = () => {
         const formRef = useRef(null);
-        formInfo = useForm(
+        formInfo = useFormalizer(
           formRef,
           { field1: '', field2: 'testValue' },
           submitHandler,
@@ -1845,7 +1853,7 @@ describe('Form Validation', () => {
     it(`Handle custom validator of invalid ${v.type}`, () => {
       const FormWrapper = () => {
         const formRef = useRef(null);
-        formInfo = useForm(
+        formInfo = useFormalizer(
           formRef,
           { field1: '', field2: 'testValue' },
           submitHandler,
@@ -1887,7 +1895,7 @@ describe('Form Validation', () => {
       // attempt to use the missing dependency
       const FormWrapper = () => {
         const formRef = useRef(null);
-        formInfo = useForm(
+        formInfo = useFormalizer(
           formRef,
           { field1: 'invalid', field2: '' },
           submitHandler,
@@ -1932,7 +1940,7 @@ describe('Form Validation', () => {
     // attempt to use the missing dependency
     const FormWrapper = () => {
       const formRef = useRef(null);
-      formInfo = useForm(
+      formInfo = useFormalizer(
         formRef,
         { field1: 'invalid', field2: '' },
         submitHandler,

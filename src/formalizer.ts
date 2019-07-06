@@ -236,7 +236,7 @@ export const useFormInput = ({
   return inputAttr;
 };
 
-export const useForm = (
+export const useFormalizer = (
   formRef: RefObject<HTMLFormElement>,
   defaultValues: FormData,
   handleSubmit?: FormSubmitHandler,

@@ -75,6 +75,8 @@ In this case, providing the `isRequired` validator first allows for its error me
 />
 ```
 
+## Global validator examples
+
 #### Overriding a global validator's error message
 
 Because overriding the error message is such a common use case, you can take a shortcut to do this and assign the new error message directly to the validator:

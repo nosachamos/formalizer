@@ -21,6 +21,27 @@
     <div id="app"></div>
 
     <style>
+      section.cover .cover-main > p:last-child a:last-child {
+        background-color: #ff2d71;
+      }
+
+      section.cover .cover-main > p:last-child a {
+        border-color: #ff2d71;
+        color: #ff2d71;
+      }
+
+      .github-corner svg {
+        fill: #ff2d71;
+      }
+
+      .sidebar ul li.active > a {
+        color: #ff2d71;
+      }
+
+      .markdown-section code {
+        font-size: 0.8em;
+      }
+
       section.cover .cover-main > p:last-child a:last-child:hover {
         color: #ffffff !important;
       }
@@ -35,6 +56,7 @@
     </style>
     <script>
       window.$docsify = {
+        routerMode: 'hash',
         auto2top: true,
         loadSidebar: true,
         subMaxLevel: 3,

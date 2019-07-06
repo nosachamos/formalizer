@@ -1,10 +1,10 @@
 import React, { useRef } from 'react';
-import { useForm } from './index';
+import { useFormalizer } from './index';
 
 export const TestForm = ({ validation, onSubmitHandler, testFunc }) => {
   const formRef = useRef(null);
 
-  const { useInput, isValid, validateForm, errors } = useForm(
+  const { useInput, isValid, validateForm, errors } = useFormalizer(
     formRef,
     {
       field1: '',
