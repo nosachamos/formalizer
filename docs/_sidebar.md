@@ -6,4 +6,5 @@
 - [Custom Validators](custom-validators.md)
 - [Global Validators](global-validators.md)
 - [Material UI integration](material-ui.md)
+- [Settings](settings.md)
 - [Examples](examples.md)

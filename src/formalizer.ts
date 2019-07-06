@@ -9,47 +9,19 @@ import {
   RefObject
 } from 'react';
 
-/*
-The validation object has a validation rule per key whose value has the following format:
-{
-    customValidator: {
-        errorMessage: string,
-        validator: function (provided only if a custom validation function is needed/desired)
-    }
-}
-
-For built in validators, the value can simply be the desired error message:
-{
-    isRequired: "This field is required"
-}
-
-Alternatively, you may provide error messages to be used with all validators of a given type. To do that, set each
-validator as a key on the GlobalValidators object:
-
-GlobalValidators.startsWithLetterZ = {
-    errorMessage: "Must start with the letter Z",
-    validator: (value) => value && value.length > 0 && value.charAt(0).toLowerCase() === 'z';
-};
-
-ValidatorSettings = {
-    invalidAttr: { error: true },
-    invalidHelperTextAttr: undefined
-}
-*/
-
 // apparently can't import a type from an optional dependency, so use "any" until this is resolved.
 // https://stackoverflow.com/questions/52795354/how-to-use-a-type-from-an-optional-dependency-in-a-declaration-file
 // https://stackoverflow.com/questions/55041919/import-of-optional-module-with-type-information
 let validator: any = void 0;
 
-interface ValidatorSettingsType {
+interface FormalizerSettingsType {
   invalidAttr?: { [key: string]: any };
-  invalidHelperTextAttr?: string;
+  helperTextAttr?: string;
 }
 
-export const ValidatorSettings: ValidatorSettingsType = {
+export const FormalizerSettings: FormalizerSettingsType = {
   invalidAttr: { error: true },
-  invalidHelperTextAttr: undefined
+  helperTextAttr: undefined
 };
 
 export const GlobalValidators: {
@@ -236,13 +208,21 @@ export const useFormInput = ({
   return inputAttr;
 };
 
+export function setupForMaterialUI() {
+  FormalizerSettings.invalidAttr = { error: true };
+  FormalizerSettings.helperTextAttr = 'helperText';
+}
+
 export const useFormalizer = (
   formRef: RefObject<HTMLFormElement>,
   defaultValues: FormData,
   handleSubmit?: FormSubmitHandler,
-  invalidAttr = ValidatorSettings.invalidAttr,
-  helperTextAttr = ValidatorSettings.invalidHelperTextAttr
+  settings?: FormalizerSettingsType
 ) => {
+  const { invalidAttr, helperTextAttr } = settings
+    ? settings
+    : FormalizerSettings;
+
   const formHandler = useState(defaultValues);
   const errorHandler = useState<{ [key: string]: string }>({});
   const [mounted, setMounted] = useState(false);

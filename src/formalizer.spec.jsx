@@ -5,7 +5,8 @@ import {
   mustMatch,
   useFormalizer,
   GlobalValidators,
-  ValidatorSettings
+  FormalizerSettings,
+  setupForMaterialUI
 } from './formalizer';
 import { act } from '@testing-library/react';
 
@@ -84,6 +85,7 @@ describe('Form Validation', () => {
   afterEach(() => {
     if (wrapper) {
       wrapper.unmount();
+      wrapper = undefined;
     }
   });
 
@@ -449,14 +451,16 @@ describe('Form Validation', () => {
     expect(wrapper.find('[name="field2"]').prop('error')).toBe(true);
   });
 
-  it('Custom error attribute is added to input', () => {
+  it('Form-specific custom error attribute is added to input', () => {
+    const settings = { invalidAttr: { 'input-has-error': 'yes' } };
+
     const FormWrapper = () => {
       const formRef = useRef(null);
       formInfo = useFormalizer(
         formRef,
         { field1: '', field2: 'testValue' },
         submitHandler,
-        { 'input-has-error': 'yes' }
+        settings
       );
       return buildTestForm(formRef, formInfo, ['isRequired'], ['isRequired']);
     };
@@ -483,8 +487,8 @@ describe('Form Validation', () => {
   });
 
   it('Global custom error attribute is added to input', () => {
-    const originalInvalidAttr = ValidatorSettings.invalidAttr;
-    ValidatorSettings.invalidAttr = { 'input-has-error': 'yes' };
+    const originalInvalidAttr = FormalizerSettings.invalidAttr;
+    FormalizerSettings.invalidAttr = { 'input-has-error': 'yes' };
 
     const FormWrapper = () => {
       const formRef = useRef(null);
@@ -516,7 +520,7 @@ describe('Form Validation', () => {
       wrapper.find('[name="field2"]').prop('input-has-error')
     ).not.toBeDefined();
 
-    ValidatorSettings.invalidAttr = originalInvalidAttr;
+    FormalizerSettings.invalidAttr = originalInvalidAttr;
   });
 
   it('Form submission is prevented when there were errors in the form', () => {
@@ -1592,8 +1596,10 @@ describe('Form Validation', () => {
         formRef,
         { field1: '', field2: 'testValue' },
         submitHandler,
-        { 'input-has-error': 'yes' },
-        'myHelperText'
+        {
+          invalidAttr: { 'input-has-error': 'yes' },
+          helperTextAttr: 'myHelperText'
+        }
       );
       return buildTestForm(formRef, formInfo, ['isRequired'], ['isRequired']);
     };
@@ -1877,6 +1883,22 @@ describe('Form Validation', () => {
       expect(callMount).toThrowError(new Error(v.error));
     })
   );
+
+  it(`The setupForMaterialUI() function configures settings correctly`, () => {
+    const originalInvalidAttr = FormalizerSettings.invalidAttr;
+    const originalHelperTextAttr = FormalizerSettings.helperTextAttr;
+    setupForMaterialUI();
+
+    // still valid because we didn't fin the validation
+    expect(FormalizerSettings.invalidAttr).not.toBeNull();
+    expect(FormalizerSettings.invalidAttr.error).toBe(true);
+
+    expect(FormalizerSettings.helperTextAttr).not.toBeNull();
+    expect(FormalizerSettings.helperTextAttr).toBe('helperText');
+
+    FormalizerSettings.invalidAttr = originalInvalidAttr;
+    FormalizerSettings.helperTextAttr = originalHelperTextAttr;
+  });
 
   // THESE TESTS MUST RUN LAST
   [
