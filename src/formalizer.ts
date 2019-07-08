@@ -20,8 +20,8 @@ interface FormalizerSettingsType {
 }
 
 export const FormalizerSettings: FormalizerSettingsType = {
-  invalidAttr: { error: true },
-  helperTextAttr: undefined
+  helperTextAttr: undefined,
+  invalidAttr: { error: true }
 };
 
 export const GlobalValidators: {
@@ -116,7 +116,7 @@ export const useFormInput = ({
 
   const handleValidation = useCallback(
     (inputValue: any) => {
-      let validationToProcess: (string | InputValidationConfig)[];
+      let validationToProcess: Array<string | InputValidationConfig>;
 
       if (Array.isArray(validation)) {
         validation.forEach(v => {
@@ -151,11 +151,10 @@ export const useFormInput = ({
         } else {
           let key: string | undefined = void 0;
           if (!v.key) {
-            if (typeof v.validator === 'string') {
-              key = v.validator; // if the validator is a string, use that as a string
-            } else {
-              key = '' + Math.random(); // no key given, so generate one
-            }
+            key =
+              typeof v.validator === 'string'
+                ? v.validator // if the validator is a string, use that as a string
+                : (key = '' + Math.random()); // no key given, so generate one
           } else {
             key = v.key;
           }
@@ -238,7 +237,7 @@ export const useFormInput = ({
   return inputAttr;
 };
 
-export function setupForMaterialUI() {
+export function setupForMaterialUI(): void {
   FormalizerSettings.invalidAttr = { error: true };
   FormalizerSettings.helperTextAttr = 'helperText';
 }
@@ -306,7 +305,7 @@ export const useFormalizer = (
     return mounted && !Object.values(errors).length; // no errors found
   };
 
-  const useInput = (name: string, validationConfigs: (InputValidation)[]) => {
+  const useInput = (name: string, validationConfigs: InputValidation[]) => {
     const inputAttr = useFormInput({
       formHandler,
       helperTextAttr,
@@ -423,7 +422,7 @@ export const validate = (
   validation: InputValidationByKey,
   formData: FormData
 ) => {
-  const fieldsToValidate: Array<InputValidationConfig> = [];
+  const fieldsToValidate: InputValidationConfig[] = [];
 
   Object.keys(validation).forEach(property => {
     let options = { formData };
@@ -503,8 +502,8 @@ export const validate = (
     }
 
     fieldsToValidate.push({
-      key: property,
       errorMessage: errorMsg,
+      key: property,
       negate,
       options,
       validator: validatorFunction
