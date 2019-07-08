@@ -35,11 +35,18 @@ export const DEFAULT_VALIDATION_ERROR_MESSAGE = 'This field is not valid.';
 type ValidatorFunction = (value: any, options: Options) => boolean;
 
 interface InputValidationConfig {
+  key?: string;
   errorMessage?: string;
   negate?: boolean;
   options?: Options;
-  validator?: ValidatorFunction;
+  validator?: ValidatorFunction | string;
 }
+
+const isInputValidationConfig = (value: any): value is InputValidationConfig =>
+  value !== undefined &&
+  value !== null &&
+  (typeof value.validator === 'string' ||
+    typeof value.validator === 'function');
 
 interface FormData {
   [key: string]: any;
@@ -54,7 +61,7 @@ interface InputValidationByKey {
   [key: string]: InputValidationConfig | string;
 }
 
-type InputValidation = InputValidationByKey | string;
+type InputValidation = InputValidationConfig | string;
 
 type ValidationErrorUpdater = (
   name: string,
@@ -85,14 +92,10 @@ interface Options {
   formData: { [key: string]: string };
 }
 
-export const mustMatch = (
-  fieldName: string
-): { [key: string]: InputValidationConfig } => ({
-  mustMatchField: {
-    errorMessage: `Must match the ${fieldName} field.`,
-    validator: (value: string, options: Options) =>
-      value === options.formData[fieldName]
-  }
+export const mustMatch = (fieldName: string): InputValidationConfig => ({
+  errorMessage: `Must match the ${fieldName} field.`,
+  validator: (value: string, options: Options) =>
+    value === options.formData[fieldName]
 });
 
 export const useFormInput = ({
@@ -113,16 +116,28 @@ export const useFormInput = ({
 
   const handleValidation = useCallback(
     (inputValue: any) => {
-      const validationToProcess =
-        typeof validation === 'string' ||
-        (typeof validation === 'object' && !Array.isArray(validation))
-          ? [validation]
-          : validation;
+      let validationToProcess: (string | InputValidationConfig)[];
 
-      if (!Array.isArray(validationToProcess)) {
-        throw new Error(
-          'Formalizer: the validator value passed into useInput must be a single string, a single object or an array.'
-        );
+      if (Array.isArray(validation)) {
+        validation.forEach(v => {
+          if (typeof v !== 'string' && !isInputValidationConfig(v)) {
+            throw new Error(
+              'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
+            );
+          }
+        });
+        validationToProcess = validation;
+      } else {
+        if (
+          typeof validation !== 'string' &&
+          !isInputValidationConfig(validation)
+        ) {
+          throw new Error(
+            'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
+          );
+        } else {
+          validationToProcess = [validation];
+        }
       }
 
       for (const v of validationToProcess) {
@@ -130,7 +145,22 @@ export const useFormInput = ({
 
         // if this is a string the user has just requested a validation by name, such as `isRequired`. Otherwise, user
         // has provided a validation config, so use that.
-        validationConfig = typeof v === 'string' ? { [v]: {} } : v;
+
+        if (typeof v === 'string') {
+          validationConfig = { [v]: {} };
+        } else {
+          let key: string | undefined = void 0;
+          if (!v.key) {
+            if (typeof v.validator === 'string') {
+              key = v.validator; // if the validator is a string, use that as a string
+            } else {
+              key = '' + Math.random(); // no key given, so generate one
+            }
+          } else {
+            key = v.key;
+          }
+          validationConfig = { [key]: v };
+        }
 
         const result = validate(inputValue, validationConfig, formData);
 
@@ -276,7 +306,7 @@ export const useFormalizer = (
     return mounted && !Object.values(errors).length; // no errors found
   };
 
-  const useInput = (name: string, validationConfigs: InputValidation[]) => {
+  const useInput = (name: string, validationConfigs: (InputValidation)[]) => {
     const inputAttr = useFormInput({
       formHandler,
       helperTextAttr,
@@ -393,20 +423,7 @@ export const validate = (
   validation: InputValidationByKey,
   formData: FormData
 ) => {
-  const fieldsToValidate: Array<{
-    key: string;
-    validation: InputValidationConfig;
-  }> = [];
-
-  // making sure the given validator is of supported type
-  if (
-    validation === null ||
-    validation === undefined ||
-    (typeof validation !== 'string' && typeof validation !== 'object') ||
-    Array.isArray(validation)
-  ) {
-    throw new Error('Formalizer: validators must be of string or object type.');
-  }
+  const fieldsToValidate: Array<InputValidationConfig> = [];
 
   Object.keys(validation).forEach(property => {
     let options = { formData };
@@ -465,19 +482,7 @@ export const validate = (
             : propValidator.options;
       }
     } else {
-      const valConfig = validation[property] as
-        | InputValidationConfig
-        | undefined;
-
-      if (
-        valConfig === null ||
-        valConfig === undefined ||
-        Array.isArray(valConfig)
-      ) {
-        throw new Error(
-          'Formalizer: validators must be of string or object type.'
-        );
-      }
+      const valConfig = validation[property] as InputValidationConfig;
 
       // if this is an empty object, user passed in just the string for a built in validator, which got converted to an
       // empty object before validate was invoked.
@@ -485,6 +490,8 @@ export const validate = (
         if (loadValidatorDependency()) {
           validatorFunction = (validator as any)[property];
         }
+      } else if (typeof valConfig.validator === 'function') {
+        validatorFunction = valConfig.validator;
       } else if (
         typeof valConfig === 'object' &&
         typeof valConfig.validator === 'string'
@@ -497,36 +504,19 @@ export const validate = (
 
     fieldsToValidate.push({
       key: property,
-      validation: {
-        errorMessage: errorMsg,
-        negate,
-        options,
-        validator: validatorFunction
-      }
+      errorMessage: errorMsg,
+      negate,
+      options,
+      validator: validatorFunction
     });
 
-    if (typeof validation[property] === 'string') {
-      fieldsToValidate[
-        fieldsToValidate.length - 1
-      ].validation.errorMessage = validation[property] as string;
-    } else if (typeof validation[property] === 'object') {
-      if (
-        typeof (validation[property] as InputValidationConfig).validator ===
-        'string'
-      ) {
-        // this was resolved to a validator function, we can discard the string now.
-        delete (validation[property] as InputValidationConfig).validator;
-      }
+    fieldsToValidate[fieldsToValidate.length - 1] = {
+      ...fieldsToValidate[fieldsToValidate.length - 1],
+      ...(validation[property] as object)
+    };
 
-      fieldsToValidate[fieldsToValidate.length - 1].validation = {
-        ...fieldsToValidate[fieldsToValidate.length - 1].validation,
-        ...(validation[property] as object)
-      };
-    } else {
-      throw new Error(
-        'Formalizer: validators must be of string or object type.'
-      );
-    }
+    // making sure the resolved function is used
+    fieldsToValidate[fieldsToValidate.length - 1].validator = validatorFunction;
   });
 
   let unmetValidationKey: string | undefined = void 0;
@@ -535,7 +525,7 @@ export const validate = (
 
   for (const validationConfig of fieldsToValidate) {
     const property = validationConfig.key;
-    const configs: InputValidationConfig = validationConfig.validation;
+    const configs: InputValidationConfig = validationConfig;
 
     if (!configs.options) {
       configs.options = { formData };
@@ -548,21 +538,17 @@ export const validate = (
         if (!value || value.trim().length === 0) {
           isValid = false;
           unmetValidationKey = property;
-          errorMessage = validationConfig.validation.errorMessage;
+          errorMessage = validationConfig.errorMessage;
         }
         break;
 
       default:
         if (typeof configs.validator === 'function') {
           isValid = configs.validator(value, configs.options);
-        } else if (typeof configs.validator === 'undefined') {
+        } else {
           throw new Error(
             `Formalizer: cannot find a validator named "${property}". If you are attempting to perform a validation defined ` +
               `by the Validator library, please make sure to have it installed prior.`
-          );
-        } else {
-          throw new Error(
-            `Formalizer: unable to execute the "${property}" validation. The given validator is not a function.`
           );
         }
     }
@@ -573,7 +559,7 @@ export const validate = (
 
     if (!isValid) {
       unmetValidationKey = property;
-      errorMessage = validationConfig.validation.errorMessage;
+      errorMessage = validationConfig.errorMessage;
       break;
     }
   }

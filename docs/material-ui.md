@@ -18,10 +18,8 @@ Now you can use Formalizer with Material UI's inputs such as `TextField`, and th
 All this function does is set the `invalidAttr` and `invalidHelperTextAttr` settings to the following values:
 
 ```jsx
-FormalizerSettings = {
-  invalidAttr: { error: true },
-  helperTextAttr: 'helperText'
-};
+FormalizerSettings.invalidAttr = { error: true };
+FormalizerSettings.helperTextAttr = 'helperText';
 ```
 
 You can learn more about this settings [here](settings.md).

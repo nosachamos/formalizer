@@ -25,9 +25,9 @@ import {mustMatch} from 'formalizer';
 
 ...
 
-  <input {...useInput('email', ['isRequired', 'isEmail'] )} />
+<input {...useInput('email', ['isRequired', 'isEmail'] )} />
 
-  <input {...useInput('emailConfirmation', mustMatch('email'))} />
+<input {...useInput('emailConfirmation', mustMatch('email'))} />
 ```
 
 Yep, it's that simple.

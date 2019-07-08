@@ -9,15 +9,11 @@ In this example we combine them both so that the `password` field is required, a
 required and as well as required to match the password field:
 
 ```jsx
-  <input
-    type="password"
-    {...useInput('password', 'isRequired')}
-  />
+<input type="password"
+    {...useInput('password', 'isRequired')} />
 
-  <input
-    type="password"
-    {...useInput('passConfirmation', ['isRequired', mustMatch('password')] )}
-  />
+<input type="password"
+    {...useInput('passConfirmation', ['isRequired', mustMatch('password')] )} />
 ```
 
 ## Custom validator examples
@@ -27,8 +23,7 @@ The following examples illustrate several ways to use this custom validator:
 #### Use this custom validator alone (no array needed)
 
 ```jsx
-// then use it while also providing an option to customize behavior
-<input type="password" {...useInput('password', mustContainZValidator)} />
+<input type="password" {...useInput('password', mustContainZ)} />
 ```
 
 #### Use this custom validator together with the built-in isRequired validator
@@ -37,7 +32,7 @@ The following examples illustrate several ways to use this custom validator:
 // then use it while also providing an option to customize behavior
 <input
   type="password"
-  {...useInput('password', ['isRequired', mustContainZValidator])}
+  {...useInput('password', ['isRequired', mustContainZ])}
 />
 ```
 
@@ -51,10 +46,7 @@ In this case, providing the `isRequired` validator first allows for its error me
 // then use it while also providing an option to customize behavior
 <input
   type="password"
-  {...useInput('password', [
-    'isRequired',
-    { mustContainZValidator: { options: { ignoreCase: true } } }
-  ])}
+  {...useInput('password', ['isRequired', { options: { ignoreCase: true } }])}
 />
 ```
 
@@ -67,9 +59,8 @@ In this case, providing the `isRequired` validator first allows for its error me
   {...useInput('password', [
     'isRequired',
     {
-      mustContainZValidator: {
-        errorMessage: 'Not valid: please make sure it contains the letter z.'
-      }
+      validator: mustContainZ,
+      errorMessage: 'Not valid: please make sure it contains the letter z.'
     }
   ])}
 />
@@ -85,7 +76,8 @@ Because overriding the error message is such a common use case, you can take a s
 <input
   type="password"
   {...useInput('password', {
-    mustContainZValidator: 'Must contain the letter z'
+    validator: 'mustContainZ',
+    errorMessage: 'Must contain the letter z'
   })}
 />
 ```
@@ -98,7 +90,8 @@ You can also override the error message of a third party validator. To do that, 
 <input
   type="password"
   {...useInput('password', {
-    isEmail: 'Please enter a valid email address'
+    validator: 'isEmail',
+    errorMessage: 'Please enter a valid email address'
   })}
 />
 ```

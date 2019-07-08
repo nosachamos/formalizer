@@ -8,31 +8,27 @@ You can define a custom validator like so:
 
 ```jsx
 // define somewhere in your app
-const mustContainZValidator = {
-  mustContainLetterZ: {
-    errorMessage: 'Must contain the letter z',
-    validator: value => !!value && value.toLowerCase().indexOf('z') > -1
-  }
+const mustContainZ = {
+  errorMessage: 'Must contain the letter z',
+  validator: value => !!value && value.toLowerCase().indexOf('z') > -1
 };
 ```
 
 Then use reuse it throughout your app like so:
 
 ```jsx
-<input type="password" {...useInput('password', mustContainZValidator)} />
+<input type="password" {...useInput('password', mustContainZ)} />
 ```
 
 If reusing the validator is not a goal, you may also define the validator inline:
 
 ```jsx
 <input
-    type="password"
-    {...useInput('password', {
-        mustContainLetterZ = {
-            errorMessage: 'Must contain the letter z',
-            validator: (value) => !!value && value.toLowerCase().indexOf('z') > -1
-        }
-    })}
+  type="password"
+  {...useInput('password', {
+    errorMessage: 'Must contain the letter z',
+    validator: value => !!value && value.toLowerCase().indexOf('z') > -1
+  })}
 />
 ```
 

@@ -24,48 +24,50 @@ describe('Form Validation', () => {
 
   const isRequiredValidation = [
     {
-      isRequired: {
-        errorMessage: FIELD_REQUIRED_MESSAGE
-      }
+      validator: 'isRequired',
+      errorMessage: FIELD_REQUIRED_MESSAGE
     }
   ];
 
   const isRequiredNegatedValidation = [
     {
-      isRequired: {
-        errorMessage: FIELD_REQUIRED_MESSAGE,
-        negate: true
-      }
+      validator: 'isRequired',
+      errorMessage: FIELD_REQUIRED_MESSAGE,
+      negate: true
     }
   ];
 
   const isRequiredWithCustomErrorMsg = [
     {
-      isRequired: {
-        errorMessage: FIELD_REQUIRED_CUSTOM_MESSAGE
-      }
+      validator: 'isRequired',
+      errorMessage: FIELD_REQUIRED_CUSTOM_MESSAGE
     }
   ];
 
   const isRequiredWithoutErrorMessage = [
     {
-      isCustomRequired: {
-        validator: value => {
-          return !!value && value.trim().length > 0;
-        }
+      validator: value => {
+        return !!value && value.trim().length > 0;
+      }
+    }
+  ];
+
+  const isRequiredWithCustomKey = [
+    {
+      key: 'isRequiredValidation',
+      validator: value => {
+        return !!value && value.trim().length > 0;
       }
     }
   ];
 
   const mustContainLetterZWithOption = [
     {
-      isCustomRequired: {
-        validator: (value, options) => {
-          if (options.ignoreCase) {
-            return !!value && value.toLowerCase().indexOf('z') > -1;
-          } else {
-            return !!value && value.indexOf('z') > -1;
-          }
+      validator: (value, options) => {
+        if (options.ignoreCase) {
+          return !!value && value.toLowerCase().indexOf('z') > -1;
+        } else {
+          return !!value && value.indexOf('z') > -1;
         }
       }
     }
@@ -175,6 +177,16 @@ describe('Form Validation', () => {
       field2Validation: isRequiredValidation,
       field1ErrorMessage: FIELD_REQUIRED_MESSAGE,
       field2ErrorMessage: FIELD_REQUIRED_MESSAGE,
+      buttonToClickSelector: '[data-test="force-validation-button"]'
+    },
+    {
+      title: `Error raised when required fields have empty value - using custom is required object with user-provided key`,
+      field1Value: '',
+      field2Value: '',
+      field1Validation: isRequiredWithCustomKey,
+      field2Validation: isRequiredWithCustomKey,
+      field1ErrorMessage: DEFAULT_VALIDATION_ERROR_MESSAGE,
+      field2ErrorMessage: DEFAULT_VALIDATION_ERROR_MESSAGE,
       buttonToClickSelector: '[data-test="force-validation-button"]'
     },
     {
@@ -562,11 +574,9 @@ describe('Form Validation', () => {
         formInfo,
         [
           {
-            mustHaveZ: {
-              errorMessage: 'Field does not contain letter z',
-              validator: value => {
-                return value.length > 1 && value.indexOf('z') > -1;
-              }
+            errorMessage: 'Field does not contain letter z',
+            validator: value => {
+              return value.length > 1 && value.indexOf('z') > -1;
             }
           }
         ],
@@ -604,11 +614,9 @@ describe('Form Validation', () => {
         [
           'isRequired',
           {
-            mustHaveZ: {
-              errorMessage: 'Field does not contain letter z',
-              validator: value => {
-                return value.length > 1 && value.indexOf('z') > -1;
-              }
+            errorMessage: 'Field does not contain letter z',
+            validator: value => {
+              return value.length > 1 && value.indexOf('z') > -1;
             }
           }
         ],
@@ -853,9 +861,8 @@ describe('Form Validation', () => {
           formInfo,
           [
             {
-              mustContainLetterZ: {
-                options: { ignoreCase: true }
-              }
+              validator: 'mustContainLetterZ',
+              options: { ignoreCase: true }
             }
           ],
           []
@@ -950,6 +957,8 @@ describe('Form Validation', () => {
       );
 
       console.error = originalError;
+
+      delete GlobalValidators.isEmail;
     })
   );
 
@@ -997,7 +1006,7 @@ describe('Form Validation', () => {
     );
   });
 
-  it("Custom validation using a string validator (referring to one of validator's functions) can be provided", () => {
+  it('Custom validation using a string validator (referring to one a third-party validator) can be provided', () => {
     const FormWrapper = () => {
       const formRef = useRef(null);
       formInfo = useFormalizer(
@@ -1010,10 +1019,8 @@ describe('Form Validation', () => {
         formInfo,
         [
           {
-            mustBeEmail: {
-              errorMessage: 'This needs to be an email.',
-              validator: 'isEmail'
-            }
+            errorMessage: 'This needs to be an email.',
+            validator: 'isEmail'
           }
         ],
         []
@@ -1066,60 +1073,10 @@ describe('Form Validation', () => {
         formInfo,
         [
           {
-            mustBeEmail: {
-              errorMessage: 'Not even close to a valid email, bro.'
-            }
+            validator: 'mustBeEmail',
+            errorMessage: 'Not even close to a valid email, bro.'
           }
         ],
-        []
-      );
-    };
-
-    wrapper = mount(<FormWrapper />);
-
-    expect(formInfo.isValid).toBe(true);
-
-    wrapper.find('[data-test="force-validation-button"]').simulate('click');
-
-    performAssertions(
-      wrapper,
-      formInfo,
-      submitHandler,
-      'Not even close to a valid email, bro.',
-      undefined,
-      false,
-      false
-    );
-
-    typeIntoInput(wrapper.find('[name="field1"]'), 'valid.email@email.com');
-    performAssertions(
-      wrapper,
-      formInfo,
-      submitHandler,
-      undefined,
-      undefined,
-      true,
-      false
-    );
-  });
-
-  it('Custom global validation using a string validator can have its message overridden by direct string assignment', () => {
-    GlobalValidators.mustBeEmail = {
-      errorMessage: 'This needs to be an email.',
-      validator: 'isEmail'
-    };
-
-    const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: 'test', field2: '' },
-        submitHandler
-      );
-      return buildTestForm(
-        formRef,
-        formInfo,
-        [{ mustBeEmail: 'Not even close to a valid email, bro.' }],
         []
       );
     };
@@ -1168,7 +1125,7 @@ describe('Form Validation', () => {
       return buildTestForm(
         formRef,
         formInfo,
-        [{ mustBeEmail: { validator: 'mustBeEmail' } }],
+        [{ validator: 'mustBeEmail' }],
         []
       );
     };
@@ -1216,7 +1173,7 @@ describe('Form Validation', () => {
       return buildTestForm(
         formRef,
         formInfo,
-        [{ mustBeEmail: { validator: 'mustBeEmail' } }],
+        [{ validator: 'mustBeEmail' }],
         []
       );
     };
@@ -1260,12 +1217,7 @@ describe('Form Validation', () => {
         { field1: 'test', field2: '' },
         submitHandler
       );
-      return buildTestForm(
-        formRef,
-        formInfo,
-        [{ mustBeEmail: { validator: 'isEmail' } }],
-        []
-      );
+      return buildTestForm(formRef, formInfo, [{ validator: 'isEmail' }], []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1340,16 +1292,14 @@ describe('Form Validation', () => {
 
   it('Custom validators are given the complete form data as one of its options object properties', () => {
     const customValidator = {
-      isFormDataPresent: {
-        validator: (value, options) => {
-          expect(options).not.toBeNull();
-          expect(options.formData).not.toBeNull();
-          expect(options.formData.field1).not.toBeNull();
-          expect(options.formData.field2).not.toBeNull();
-          expect(options.formData.field1).toBe('test1');
-          expect(options.formData.field2).toBe('test2');
-          return true;
-        }
+      validator: (value, options) => {
+        expect(options).not.toBeNull();
+        expect(options.formData).not.toBeNull();
+        expect(options.formData.field1).not.toBeNull();
+        expect(options.formData.field2).not.toBeNull();
+        expect(options.formData.field1).toBe('test1');
+        expect(options.formData.field2).toBe('test2');
+        return true;
       }
     };
 
@@ -1388,17 +1338,15 @@ describe('Form Validation', () => {
   ].forEach(o =>
     it(`Custom validators are given the complete form data with the options object even if an ${o.name} options has been specified`, () => {
       const customValidator = {
-        isFormDataPresent: {
-          options: o.options,
-          validator: (value, options) => {
-            expect(options).not.toBeNull();
-            expect(options.formData).not.toBeNull();
-            expect(options.formData.field1).not.toBeNull();
-            expect(options.formData.field2).not.toBeNull();
-            expect(options.formData.field1).toBe('test1');
-            expect(options.formData.field2).toBe('test2');
-            return true;
-          }
+        options: o.options,
+        validator: (value, options) => {
+          expect(options).not.toBeNull();
+          expect(options.formData).not.toBeNull();
+          expect(options.formData.field1).not.toBeNull();
+          expect(options.formData.field2).not.toBeNull();
+          expect(options.formData.field1).toBe('test1');
+          expect(options.formData.field2).toBe('test2');
+          return true;
         }
       };
 
@@ -1557,12 +1505,7 @@ describe('Form Validation', () => {
         field1: 'valid.email@email.com',
         field2: ''
       });
-      return buildTestForm(
-        formRef,
-        formInfo,
-        [{ mustBeEmail: { validator: 'isEmail' } }],
-        []
-      );
+      return buildTestForm(formRef, formInfo, [{ validator: 'isEmail' }], []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1739,7 +1682,7 @@ describe('Form Validation', () => {
 
       expect(callMount).toThrowError(
         new Error(
-          `Formalizer: unable to execute the "invalidValidatorFunc" validation. The given validator is not a function.`
+          `Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.`
         )
       );
     })
@@ -1747,22 +1690,22 @@ describe('Form Validation', () => {
 
   [
     {
-      validator: [{ isEmail: [] }],
+      validator: [{ validator: [] }],
       type: 'validator of array type',
       error: 'Formalizer: validators must be of string or object type.'
     },
     {
-      validator: [{ isEmail: 123 }],
+      validator: [{ validator: 123 }],
       type: 'validator of 123 type',
       error: 'Formalizer: validators must be of string or object type.'
     },
     {
-      validator: [{ isEmail: false }],
+      validator: [{ validator: false }],
       type: 'validator of boolean type',
       error: 'Formalizer: validators must be of string or object type.'
     },
     {
-      validator: [{ isEmail: null }],
+      validator: [{ validator: null }],
       type: 'validator of null type',
       error: 'Formalizer: validators must be of string or object type.'
     }
@@ -1802,58 +1745,49 @@ describe('Form Validation', () => {
       validator: false,
       type: 'bare boolean type',
       error:
-        'Formalizer: the validator value passed into useInput must be a single string, a single object or an array.'
+        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
     },
     {
       validator: 123,
       type: 'bare numeric type',
       error:
-        'Formalizer: the validator value passed into useInput must be a single string, a single object or an array.'
+        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
     },
     {
       validator: null,
       type: 'bare null type',
-      error: 'Formalizer: validators must be of string or object type.'
+      error:
+        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
     },
     {
       validator: [false],
       type: 'boolean type',
-      error: 'Formalizer: validators must be of string or object type.'
+      error:
+        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
     },
     {
       validator: [123],
       type: 'numeric type',
-      error: 'Formalizer: validators must be of string or object type.'
+      error:
+        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
     },
     {
       validator: [undefined],
       type: 'undefined type',
-      error: 'Formalizer: validators must be of string or object type.'
+      error:
+        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
     },
     {
       validator: [null],
       type: 'null type',
-      error: 'Formalizer: validators must be of string or object type.'
+      error:
+        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
     },
     {
-      validator: [{ isEmail: [] }],
+      validator: [[]],
       type: 'array validator value',
-      error: 'Formalizer: validators must be of string or object type.'
-    },
-    {
-      validator: [{ isEmail: undefined }],
-      type: 'undefined validator value',
-      error: 'Formalizer: validators must be of string or object type.'
-    },
-    {
-      validator: [{ isEmail: false }],
-      type: 'boolean validator value',
-      error: 'Formalizer: validators must be of string or object type.'
-    },
-    {
-      validator: [{ isEmail: 123 }],
-      type: 'numberic validator value',
-      error: 'Formalizer: validators must be of string or object type.'
+      error:
+        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
     }
   ].forEach(v =>
     it(`Handle custom validator of invalid ${v.type}`, () => {
@@ -1902,10 +1836,13 @@ describe('Form Validation', () => {
 
   // THESE TESTS MUST RUN LAST
   [
-    { name: 'unknown string validator', validator: ['isEmail'] },
+    {
+      name: 'unknown string validator',
+      validator: ['isEmail']
+    },
     {
       name: 'unknown validator function',
-      validator: [{ isEmail: { validator: 'isEmail' } }]
+      validator: [{ validator: 'isEmail' }]
     }
   ].forEach(v =>
     it(`Handle missing optional validator library dependency correctly when using ${v.name}`, () => {

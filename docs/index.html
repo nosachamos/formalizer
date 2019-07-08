@@ -16,11 +16,12 @@
       content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
     />
     <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css" />
-  </head>
-  <body>
-    <div id="app"></div>
 
     <style>
+      .markdown-section h1 {
+        margin: 2.5rem 0 1rem;
+      }
+
       section.cover .cover-main > p:last-child a:last-child {
         background-color: #ff2d71;
       }
@@ -54,6 +55,10 @@
         font-weight: bold;
       }
     </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
     <script>
       window.$docsify = {
         routerMode: 'hash',
@@ -62,7 +67,7 @@
         subMaxLevel: 3,
         coverpage: true,
         onlyCover: true,
-        logo: 'sidebarLogo.png',
+        logo: '_media/sidebarLogo.png',
         name: 'formalizer',
         repo: 'https://github.com/nosachamos/formalizer',
         baseUrl: 'https://nosachamos.github.io/formalizer/'

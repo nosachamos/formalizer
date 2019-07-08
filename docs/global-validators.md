@@ -29,7 +29,7 @@ specific options such as the `errorMessage`:
 <input
   type="password"
   {...useInput('password', {
-    mustContainLetterZ: {
+      validator: 'mustContainLetterZ',
       errorMessage: 'Must contain the letter z'
     }
   })}

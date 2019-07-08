@@ -2,14 +2,19 @@
 
 Let's add validations to following signup form:
 
-```html
-<form>
-  <input name="email" />
-  <input type="password" name="password" />
-  <input type="password" name="passwordConfirmation" />
+```jsx
+const UserProfileComponent = () =>
 
-  <button type="submit">Submit</button>
-</form>
+    return (
+        <form>
+            <input name="email" />
+            <input type="password" name="password" />
+            <input type="password" name="passwordConfirmation" />
+
+            <button type="submit">Submit</button>
+        </form>
+    );
+}
 ```
 
 For this tutorial, we have a few requirements we want to implement:
@@ -22,7 +27,7 @@ For this tutorial, we have a few requirements we want to implement:
 
 First, since we will be adding Formalizer to this form, we won't need the `name` attribute anymore. Let's clean it up:
 
-```html
+```jsx
 <form>
   <input />
   <input type="password" />
@@ -79,10 +84,8 @@ Now we know how to get the password field required. But we also want this field 
   {...useInput('password', [
     'isRequired',
     {
-      mustContainZ: {
-        errorMessage: 'Must contain letter Z.',
-        validator: value => value && value.indexOf('Z') > -1
-      }
+      errorMessage: 'Must contain letter Z.',
+      validator: value => value && value.indexOf('Z') > -1
     }
   ])}
 />
@@ -91,11 +94,9 @@ Now we know how to get the password field required. But we also want this field 
 You can, of course, factor that validator out for readability or reuse:
 
 ```jsx
-const containsZLetter = {
-  mustContainZ: {
-    errorMessage: 'Must contain letter Z.',
-    validator: value => value && value.indexOf('Z') > -1
-  }
+const mustContainZ = {
+  errorMessage: 'Must contain letter Z.',
+  validator: value => value && value.indexOf('Z') > -1
 };
 
 <input
@@ -109,17 +110,12 @@ const containsZLetter = {
 Our last validation requirement is to have the password confirmation field match the password field. We will start implementing another custom validator to illustrate how this could be done from scratch. The validator function receives two parameters: a `value`, which we have seen above, and an `options` object. This options object has a property called `formData`, which has the value for every field in the form. We can use that to create this custom validator:
 
 ```jsx
-const mustMatchPasswordValidator = {
-  mustMatchPassword: {
-    errorMessage: 'Must match the password.',
-    validator: (value, options) => value === options.formData.password
-  }
+const mustMatchPassword = {
+  errorMessage: 'Must match the password.',
+  validator: (value, options) => value === options.formData.password
 };
 
-<input
-  type="password"
-  {...useInput('passConfirmation', mustMatchPasswordValidator)}
-/>;
+<input type="password" {...useInput('passConfirmation', mustMatchPassword)} />;
 ```
 
 But because this is such a common use-case, we provide a validator out of the box:
@@ -174,7 +170,7 @@ We then use it to display the errors:
 
   <input
     type="password"
-    {...useInput('password', ['isRequired', containsZLetter])}
+    {...useInput('password', ['isRequired', mustContainZ])}
   />
   <span>{errors['password']}</span>
 
@@ -188,36 +184,91 @@ We then use it to display the errors:
 </form>
 ```
 
+## Disabling submission when form is invalid
+
+We can quickly check whether the whole form is valid by using the `isValid` flag:
+
+```jsx
+const { useInput, errors, isValid } = useFormalizer(formRef);
+```
+
+Then use it to disable the Submit button when the `isValid` true is not true:
+
+```jsx
+<button disabled={!isValid} type="submit">
+  Submit
+</button>
+```
+
+## Setting form initial values
+
+Suppose that in our component, we could be given a `userProfile` prop. If set, that should be used to set the form initial values (just the email, as we won't save the password anywhere):
+
+```jsx
+const UserProfileComponent = ({userProfile}) => {
+    console.dir(userProfile); // { email: 'john.smith@gmail.com' }
+
+    ...
+```
+
+To accomplish that, we simply pass it as the `useFormalizer` hook's second argument:
+
+```jsx
+const { useInput, errors, isValid } = useFormalizer(formRef, userProfile);
+```
+
+## Handling form submission
+
+Finally, we want to be able to do something with the form data when the form is valid and the user clicks Submit. With Formalizer, you don't need to add onSubmit handlers yourself. Instead, pass in the submit handler function to the `useFormalizer` hook, and it will be invoked when the user submits a valid form:
+
+```jsx
+const submitHandler = (event, formData) => {
+  // do something with formData, such as send it to the server
+};
+
+const { useInput, errors, isValid } = useFormalizer(
+  formRef,
+  null,
+  submitHandler
+);
+```
+
 That's it!
 
 ## Final Result
 
-This is how our fully validated form looks like:
+This is how our fully-featured form looks like:
 
 ```jsx
-const containsZLetter = {
-  mustContainZ: {
+const mustContainZ = {
     errorMessage: 'Must contain letter Z.',
     validator: value => value && value.indexOf('Z') > -1
-  }
 };
 
-<form ref={formRef}>
-  <input {...useInput('email', 'isRequired')} />
-  <span>{errors['email']}</span>
+const UserProfileComponent = ({userProfile}) =>
 
-  <input
-    type="password"
-    {...useInput('password', ['isRequired', containsZLetter])}
-  />
-  <span>{errors['password']}</span>
+    const handleSubmit = (event, formData) => {
+        // do something with formData, such as send it to the server
+    }
 
-  <input
-    type="password"
-    {...useInput('passConfirmation', mustMatch('password'))}
-  />
-  <span>{errors['passConfirmation']}</span>
+    const formRef = useRef(null);
+    const { useInput, errors, isValid } = useFormalizer(formRef, userProfile, handleSubmit);
 
-  <button type="submit">Submit</button>
-</form>;
+    return (
+        <form ref={formRef}>
+            <input {...useInput('email', 'isRequired')} />
+            <span>{errors['email']}</span>
+
+            <input type="password"
+                {...useInput('password', ['isRequired', containsZLetter])} />
+            <span>{errors['password']}</span>
+
+            <input type="password"
+                {...useInput('passConfirmation', mustMatch('password'))} />
+            <span>{errors['passConfirmation']}</span>
+
+            <button disabled={!isValid} type="submit">Submit</button>
+        </form>
+    );
+}
 ```
