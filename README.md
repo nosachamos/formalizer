@@ -24,14 +24,14 @@ or
 npm install formalizer --save
 ```
 
-## Usage
+# Sample Usage
 
-```jsx harmony
-import { useForm, mustMatch } from 'formalizer';
+```jsx
+import { useFormalizer, mustMatch } from 'formalizer';
 
 const UserProfileComponent = () => {
   const formRef = useRef(null);
-  const { useInput, errors, isValid } = useForm(formRef);
+  const { useInput, errors, isValid } = useFormalizer(formRef);
 
   return (
     <form ref={formRef}>
@@ -49,230 +49,58 @@ const UserProfileComponent = () => {
 };
 ```
 
-## Tutorial
+For a complete guide on how each of these pieces work, see our [tutorial](docs/tutorial.md).
 
-Let's add validations to following signup form:
+# In a Nutshell
 
-```html
-<form>
-  <input name="email" />
-  <input type="password" name="password" />
-  <input type="password" name="passwordConfirmation" />
+Use the `useFormalizer` hook to gain access to the `useInput` hook, the errors currently in your form, whether the form is valid or not [and more](docs/useformalizer-hook.md).
 
-  <button type="submit">Submit</button>
-</form>
-```
+Then, use the `useInput` to [setup validations](docs/examples.md) on your form inputs.
 
-For this tutorial, we have a few requirements we want to implement:
+Formalizer offers two [built in validators](docs/builtin-validators.md) out-of-the-box and it integrates with the awesome [validator](https://www.npmjs.com/package/validator) library seamlessly, which means if you install it [you can use all of their validators](docs/third-party-validators.md).
 
-- The email field should be required, and its value must be a valid email address;
-- We also want password to be required, to contain the uppercase letter Z;
-- Finally, the password confirmation field must match match the password.
+But know that writing your own [custom validators](docs/custom-validators.md) is super easy.
 
-### Setting up the form
+Also, you may create [global validators](docs/global-validators.md) so that they accessible throughout your app. Doing so helps keep your code DRY and facilitates maintaining it.
 
-First, since we will be adding Formalizer to this form, we won't need the `name` attribute anymore. Let's clean it up:
+Finally, if you use [Material UI](https://material-ui.com/) you may like the fact Formalizer [integrates](docs/material-ui.md) with it. If you use some other UI framework, changes are you can tweak our [settings](docs/settings.md) to make to work with it.
 
-```html
-<form>
-  <input />
-  <input type="password" />
-  <input type="password" />
+# Contributing
 
-  <button type="submit">Submit</button>
-</form>
-```
+Contributions are very welcome!
 
-We use the `useForm` hook to get a reference to everything we need. It takes a reference to the form you will be validating:
+We follow the "fork-and-pull" Git workflow.
 
-```jsx harmony
-const formRef = useRef(null);
-const { useInput } = useForm(formRef);
+1. **Create a Fork and clone it**
 
-<form ref={formRef}>...</form>;
-```
+   Simply click on the “fork” button of the repository page on GitHub.
 
-### Adding the email field validations
+   The standard clone command creates a local git repository from your remote fork on GitHub.
 
-We then can use the `useInput` field to add validations to the inputs. Let's make both the email and password fields required:
+2. **Modify the Code**
 
-```jsx harmony
-<form ref={formRef}>
-  <input {...useInput('email', 'isRequired')} />
-  <input type="password" />
-  <input type="password" />
+   In your local clone, modify the code and commit them to your local clone using the git commit command.
 
-  <button type="submit">Submit</button>
-</form>
-```
+   Run `npm test` and make sure all tests still pass.
 
-We also want the email field to be a valid email. To validate this, we will take advantage of our integration with the `validator` library:
+   Run `tslint --project .` and make sure you get no warnings.
 
-```sh
-npm install validator --save
-```
+3. **Push your Changes**
 
-Now we can use the `isEmail` or any other of their excellent validators.
+   Make sure to update affected tests and/or add tests to any new features you may have created.
 
-We want to use more than one validator, so use an array:
+   We are very careful to make sure coverage does not drop.
 
-```jsx harmony
-<input {...useInput('email', ['isRequired', 'isEmail'])} />
-```
+4. **Create a Pull Request**
 
-### Adding password field validations
+   We will review your changes and possibly start a discussion.
 
-Now we know how to get the password field required. But we also want this field to contain the letter Z. For this special requirement, we will write a custom validator:
-
-```jsx harmony
-<input
-  type="password"
-  {...useInput('password', [
-    'isRequired',
-    {
-      mustContainZ: {
-        errorMessage: 'Must contain letter Z.',
-        validator: value => value && value.indexOf('Z') > -1
-      }
-    }
-  ])}
-/>
-```
-
-You can, of course, factor that validator out for readability or reuse:
-
-```jsx harmony
-const mustContainZValidator = {
-  mustContainZ: {
-    errorMessage: 'Must contain letter Z.',
-    validator: value => value && value.indexOf('Z') > -1
-  }
-};
-
-<input
-  type="password"
-  {...useInput('password', ['isRequired', mustContainZValidator])}
-/>;
-```
-
-### Adding password confirmation field validation
-
-Our last validation requirement is to have the password confirmation field match the password field. We will start implementing another custom validator to illustrate how this could be done from scratch. The validator function receives two parameters: a `value`, which we have seen above, and an `options` object. This options object has a property called `formData`, which has the value for every field in the form. We can use that to create this custom validator:
-
-```jsx harmony
-const mustMatchPasswordValidator = {
-  mustMatchPassword: {
-    errorMessage: 'Must match the password.',
-    validator: (value, options) => value === options.formData.password
-  }
-};
-
-<input
-  type="password"
-  {...useInput('passConfirmation', mustMatchPasswordValidator)}
-/>;
-```
-
-But because this is such a common use-case, we provide a validator out of the box:
-
-```jsx harmony
-import { mustMatch } from 'formalizer';
-
-...
-
-<input type="password" {...useInput('passConfirmation', mustMatch('password')) } />
-```
-
-The last thing left to do, is display the validation errors when they occur.
-
-### Displaying validation errors
-
-To display the validation errors, we add a `span` elements to our form:
-
-```html
-<form ref="{formRef}">
-  <input {...useInput('email', 'isRequired')} />
-  <span></span>
-
-  <input type="password" {...useInput('password', [ 'isRequired',
-  mustContainZValidator ]) } />
-  <span></span>
-
-  <input type="password" {...useInput('passConfirmation', mustMatch('password'))
-  } />
-  <span></span>
-
-  <button type="submit">Submit</button>
-</form>
-```
-
-The `useForm` hook also returns an `errors` object which contains the errors currently in the form:
-
-```jsx harmony
-const { useInput, errors } = useForm(formRef);
-```
-
-We then use it to display the errors:
-
-```jsx harmony
-<form ref={formRef}>
-  <input {...useInput('email', 'isRequired')} />
-  <span>{errors['email']}</span>
-
-  <input
-    type="password"
-    {...useInput('password', ['isRequired', mustContainZValidator])}
-  />
-  <span>{errors['password']}</span>
-
-  <input
-    type="password"
-    {...useInput('passConfirmation', mustMatch('password'))}
-  />
-  <span>{errors['passConfirmation']}</span>
-
-  <button type="submit">Submit</button>
-</form>
-```
-
-That's it!
-
-### Final Result
-
-This is how our fully validated form looks like:
-
-```jsx harmony
-const mustContainZValidator = {
-  mustContainZ: {
-    errorMessage: 'Must contain letter Z.',
-    validator: value => value && value.indexOf('Z') > -1
-  }
-};
-
-<form ref={formRef}>
-  <input {...useInput('email', 'isRequired')} />
-  <span>{errors['email']}</span>
-
-  <input
-    type="password"
-    {...useInput('password', ['isRequired', mustContainZValidator])}
-  />
-  <span>{errors['password']}</span>
-
-  <input
-    type="password"
-    {...useInput('passConfirmation', mustMatch('password'))}
-  />
-  <span>{errors['passConfirmation']}</span>
-
-  <button type="submit">Submit</button>
-</form>;
-```
+   If changes are required, you can simply push these changes into your fork by repeating steps #3 and #4 and the pull request is updated automatically.
 
 ## License
 
 MIT
 
---------------
+---
 
-Made with ❤ and coffee
+Created and maintained by **[`Eduardo Born`](http://github.com/nosachamos)** with ❤ and coffee
