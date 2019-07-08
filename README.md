@@ -10,10 +10,8 @@ Formalizer is a React Hooks based form validation library made for humans. The c
 
 <p align="center">
 <img src="https://github.com/nosachamos/formalizer/raw/master/docs/logo.png" alt="Formalizer" style="max-width:100%;">
-  
-<span>Simple, tiny, extensible, intuitive, documented, fully tested, magical.</span>
-
 </p>
+<p align="center">Simple, tiny, extensible, intuitive, documented, fully tested, magical.</p>
 
 
 ## Installation
