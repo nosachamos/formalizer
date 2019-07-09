@@ -247,7 +247,7 @@ export const useFormalizer = (
   handleSubmit?: FormSubmitHandler,
   settings?: FormalizerSettingsType
 ) => {
-  const formRef = <MutableRefObject<HTMLFormElement | null>>useRef(null);
+  const formRef = useRef(null) as MutableRefObject<HTMLFormElement | null>;
   const { invalidAttr, helperTextAttr } = settings
     ? settings
     : FormalizerSettings;
