@@ -6,7 +6,15 @@ module.exports = {
     path: path.join(__dirname, '/build'),
     filename: 'index.js'
   },
-  externals: ['react', 'validator'],
+  externals: {
+    react: {
+      root: 'React',
+      commonjs2: 'react',
+      commonjs: 'react',
+      amd: 'react'
+    },
+    validator: 'validator'
+  },
   optimization: {
     minimize: false
   }
