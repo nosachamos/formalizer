@@ -6,7 +6,8 @@ module.exports = {
   output: {
     path: path.join(__dirname, '/build'),
     filename: 'index.min.js',
-    library: 'formalizer'
+    library: 'formalizer',
+    libraryTarget: 'umd'
   },
   externals: {
     react: {
