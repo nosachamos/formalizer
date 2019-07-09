@@ -8,11 +8,14 @@
 
 Formalizer is a React Hooks based form validation library made for humans. The cleanest code or your money back ;)
 
-![Formalizer](docs/logo.png)
+<p align="center">
+<img src="https://github.com/nosachamos/formalizer/raw/master/docs/logo.png" alt="Formalizer" style="max-width:100%;">
+</p>
+<p align="center">Simple, tiny, extensible, intuitive, documented, fully tested, magical.</p>
 
-Simple, tiny, extensible, intuitive, documented, fully tested, magical.
+<br/>
 
-## Installation
+# Installation
 
 ```sh
 yarn add formalizer
@@ -62,7 +65,7 @@ But know that writing your own [custom validators](docs/custom-validators.md) is
 
 Also, you may create [global validators](docs/global-validators.md) so that they accessible throughout your app. Doing so helps keep your code DRY and facilitates maintaining it.
 
-Finally, if you use [Material UI](https://material-ui.com/) you may like the fact Formalizer [integrates](docs/material-ui.md) with it. If you use some other UI framework, changes are you can tweak our [settings](docs/settings.md) to make to work with it.
+Finally, if you use [Material UI](https://material-ui.com/) you may like the fact Formalizer [integrates](docs/material-ui.md) with it. If you use some other UI framework, chances are you can tweak our [settings](docs/settings.md) to make it work with it.
 
 # Contributing
 
