@@ -2,11 +2,10 @@
 
 The `useFormalizer` allows you to both setup your form for validation, as well as access information about its validity, current errors, and more.
 
-At a minimum, it takes a ref to the form that is to be validated:
+Ir returns a ref that should must connect to the form to be validated:
 
 ```jsx
-const formRef = useRef(null);
-useFormalizer(formRef);
+const { formRef } = useFormalizer();
 
 ...
 
@@ -15,7 +14,7 @@ useFormalizer(formRef);
 </form>
 ```
 
-But on it's own, it's not too useful. To take advantage of what Formalizer can offer you will need what this hook returns.
+But on it's own, it's not too useful. To take advantage of what Formalizer can offer you will need the other items this hook returns.
 
 ## What it returns
 
@@ -26,19 +25,21 @@ import { useFormalizer } from 'formalizer';
 ...
 
     const {
+            formRef,
             useInput,
             errors,
             isValid,
             validateForm,
             formValues,
             setValues
-          } = useFormalizer(formRef);
+          } = useFormalizer();
 ```
 
 Let's examine each of these items returned:
 
 | Property       | Type     | Description                                                                                                                                                                                                                   |
 | -------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `formRef`      | ref      | A form ref that must be connected to the form being validated.                                                                                                                                                                |
 | `useInput`     | hook     | This hook is used to setup validation in each of the form inputs.                                                                                                                                                             |
 | `errors`       | object   | An object containing the errors currently in the form. The keys indicate the fields which have errors, and the values are the error messages to be displayed to the user. When the form is valid an empty object is returned. |
 | `isValid`      | boolean  | A convenience flag indicating whether the form has errors or not. Useful for disabling submit/action buttons until errors have been resolved.                                                                                 |
@@ -50,7 +51,7 @@ Let's examine each of these items returned:
 
 A common use case you are likely to see is to initiate the form with certain values. The most common example is of editing an existing entity.
 
-The `useFormalizer` hook takes as its second argument an object containing the initial values for the form. You won't need to also set these values on the inputs: simply passing them to Formalizer is enough - all your inputs will be rendered with their initial values set.
+The `useFormalizer` hook takes as its first argument an object containing the initial values for the form. You won't need to also set these values on the inputs: simply passing them to Formalizer is enough - all your inputs will be rendered with their initial values set.
 
 For example, to initialize the following form with a given email address value:
 
@@ -58,8 +59,7 @@ For example, to initialize the following form with a given email address value:
 import { useFormalizer } from 'formalizer';
 
 const EmailFormComponent = () => {
-  const formRef = useRef(null);
-  const { useInput, errors } = useFormalizer(formRef, {
+  const { formRef, useInput, errors } = useFormalizer({
     email: 'initial.email@gmail.com'
   });
 
@@ -74,9 +74,9 @@ const EmailFormComponent = () => {
 
 ## Handling form submissions
 
-Once your validations have been set, you are also likely to need to handle form submissions
+Once your validations have been set, you are also likely to need to handle form submissions.
 
-With Formalizer, instead of directly attaching an `onSubmit` handler to your form, you will pass your event handler as the `useFormalizer` hook's third argument, like so:
+With Formalizer, instead of directly attaching an `onSubmit` handler to your form, you will pass your event handler as the `useFormalizer` hook's second argument, like so:
 
 ```jsx
 import { useFormalizer } from 'formalizer';
@@ -86,8 +86,7 @@ const EmailFormComponent = () => {
     // so something with form data, such as dispatching a request to a server.
   };
 
-  const formRef = useRef(null);
-  const { useInput, errors } = useFormalizer(formRef, null, submitHandler);
+  const { formRef, useInput, errors } = useFormalizer(null, submitHandler);
 
   return (
     <form ref={formRef}>

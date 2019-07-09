@@ -28,8 +28,7 @@ const settings = {
   helperTextAttr: 'errorMsg'
 };
 
-const { useInput, errors } = useFormalizer(
-  formRef,
+const { formRef, useInput, errors } = useFormalizer(
   initialValues,
   submitHandler,
   settings // <-- your custom settings for this form only

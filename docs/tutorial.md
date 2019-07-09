@@ -37,11 +37,10 @@ First, since we will be adding Formalizer to this form, we won't need the `name`
 </form>
 ```
 
-We use the `useFormalizer` hook to get a reference to everything we need. It takes a reference to the form you will be validating:
+We use the `useFormalizer` hook to get a reference to everything we need. It returns a ref that must be connected to the form you will be validating:
 
 ```jsx
-const formRef = useRef(null);
-const { useInput } = useFormalizer(formRef);
+const { formRef, useInput } = useFormalizer();
 
 <form ref={formRef}>...</form>;
 ```
@@ -158,7 +157,7 @@ To display the validation errors, we add a `span` elements to our form:
 The `useFormalizer` hook also returns an `errors` object which contains the errors currently in the form:
 
 ```jsx
-const { useInput, errors } = useFormalizer(formRef);
+const { formRef, useInput, errors } = useFormalizer();
 ```
 
 We then use it to display the errors:
@@ -189,7 +188,7 @@ We then use it to display the errors:
 We can quickly check whether the whole form is valid by using the `isValid` flag:
 
 ```jsx
-const { useInput, errors, isValid } = useFormalizer(formRef);
+const { formRef, useInput, errors, isValid } = useFormalizer();
 ```
 
 Then use it to disable the Submit button when the `isValid` true is not true:
@@ -211,10 +210,10 @@ const UserProfileComponent = ({userProfile}) => {
     ...
 ```
 
-To accomplish that, we simply pass it as the `useFormalizer` hook's second argument:
+To accomplish that, we simply pass it as the `useFormalizer` hook's first argument:
 
 ```jsx
-const { useInput, errors, isValid } = useFormalizer(formRef, userProfile);
+const { formRef, useInput, errors, isValid } = useFormalizer(userProfile);
 ```
 
 ## Handling form submission
@@ -226,9 +225,8 @@ const submitHandler = (event, formData) => {
   // do something with formData, such as send it to the server
 };
 
-const { useInput, errors, isValid } = useFormalizer(
-  formRef,
-  null,
+const { formRef, useInput, errors, isValid } = useFormalizer(
+  userProfile,
   submitHandler
 );
 ```
@@ -251,8 +249,7 @@ const UserProfileComponent = ({userProfile}) =>
         // do something with formData, such as send it to the server
     }
 
-    const formRef = useRef(null);
-    const { useInput, errors, isValid } = useFormalizer(formRef, userProfile, handleSubmit);
+    const { formRef, useInput, errors, isValid } = useFormalizer(userProfile, handleSubmit);
 
     return (
         <form ref={formRef}>

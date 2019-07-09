@@ -6,7 +6,7 @@ import {
   useEffect,
   useRef,
   useState,
-  RefObject
+  MutableRefObject
 } from 'react';
 
 // apparently can't import a type from an optional dependency, so use "any" until this is resolved.
@@ -243,11 +243,11 @@ export function setupForMaterialUI(): void {
 }
 
 export const useFormalizer = (
-  formRef: RefObject<HTMLFormElement>,
   defaultValues: FormData,
   handleSubmit?: FormSubmitHandler,
   settings?: FormalizerSettingsType
 ) => {
+  const formRef = <MutableRefObject<HTMLFormElement | null>>useRef(null);
   const { invalidAttr, helperTextAttr } = settings
     ? settings
     : FormalizerSettings;
@@ -277,7 +277,7 @@ export const useFormalizer = (
     setErrors(errors);
   };
 
-  if (formRef.current) {
+  if (formRef && formRef.current) {
     if (!formRef.current.formValidationIdAttr) {
       formRef.current.formValidationIdAttr = Math.random()
         .toString(36)
@@ -378,6 +378,7 @@ export const useFormalizer = (
 
   return {
     errors,
+    formRef,
     formValues: values,
     isValid: mounted && !Object.values(errors).length,
     setValues: externalSetValues,

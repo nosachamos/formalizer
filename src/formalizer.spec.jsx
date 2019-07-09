@@ -123,13 +123,8 @@ describe('Form Validation', () => {
     submitHandler.mockClear(); // reset the calls count
   }
 
-  const buildTestForm = (
-    formRef,
-    formInfo,
-    field1Validation,
-    field2Validation
-  ) => (
-    <form ref={formRef}>
+  const buildTestForm = (formInfo, field1Validation, field2Validation) => (
+    <form ref={formInfo.formRef}>
       <input name="field1" {...formInfo.useInput('field1', field1Validation)} />
       <span id="field1Error">{formInfo.errors['field1']}</span>
       <input name="field2" {...formInfo.useInput('field2', field2Validation)} />
@@ -222,16 +217,13 @@ describe('Form Validation', () => {
   ].forEach(data =>
     it(data.title, () => {
       const FormWrapper = () => {
-        const formRef = useRef(null);
         formInfo = useFormalizer(
-          formRef,
           { field1: data.field1Value, field2: data.field2Value },
           submitHandler,
           null
         );
 
         return buildTestForm(
-          formRef,
           formInfo,
           data.field1Validation,
           data.field2Validation
@@ -257,16 +249,9 @@ describe('Form Validation', () => {
 
   it('Validators can be negated', () => {
     const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: '', field2: '' },
-        submitHandler,
-        null
-      );
+      formInfo = useFormalizer({ field1: '', field2: '' }, submitHandler, null);
 
       return buildTestForm(
-        formRef,
         formInfo,
         isRequiredNegatedValidation,
         isRequiredNegatedValidation
@@ -307,16 +292,10 @@ describe('Form Validation', () => {
   });
 
   it('Can handle no validations given: form is always valid', () => {
-    const formRef = createRef();
     const FormWrapper = () => {
-      formInfo = useFormalizer(
-        formRef,
-        { field1: '', field2: '' },
-        submitHandler,
-        null
-      );
+      formInfo = useFormalizer({ field1: '', field2: '' }, submitHandler, null);
 
-      return buildTestForm(formRef, formInfo, [], []);
+      return buildTestForm(formInfo, [], []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -340,7 +319,7 @@ describe('Form Validation', () => {
     typeIntoInput(wrapper.find('[name="field1"]'), 'test z');
 
     // submit form
-    formRef.current.dispatchEvent(new Event('submit'));
+    formInfo.formRef.current.dispatchEvent(new Event('submit'));
 
     // no errors, form is submitted
     performAssertions(
@@ -355,12 +334,11 @@ describe('Form Validation', () => {
   });
 
   it('Can handle no fields to validate given: form is always valid', () => {
-    const formRef = createRef();
     const FormWrapper = () => {
-      formInfo = useFormalizer(formRef, {}, submitHandler, null);
+      formInfo = useFormalizer({}, submitHandler, null);
 
       return (
-        <form ref={formRef}>
+        <form ref={formInfo.formRef}>
           <button
             data-test="form-submit-button"
             {...(formInfo.isValid ? {} : { disabled: true })}
@@ -390,7 +368,7 @@ describe('Form Validation', () => {
     submitHandler.mockClear(); // reset the calls count
 
     // submit form
-    formRef.current.dispatchEvent(new Event('submit'));
+    formInfo.formRef.current.dispatchEvent(new Event('submit'));
 
     // no errors, form is submitted
     expect(formInfo.isValid).toBe(true);
@@ -403,15 +381,9 @@ describe('Form Validation', () => {
     GlobalValidators.isRequired = CUSTOM_ERROR_MESSAGE;
 
     const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: '', field2: '' },
-        submitHandler,
-        null
-      );
+      formInfo = useFormalizer({ field1: '', field2: '' }, submitHandler, null);
 
-      return buildTestForm(formRef, formInfo, ['isRequired'], ['isRequired']);
+      return buildTestForm(formInfo, ['isRequired'], ['isRequired']);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -435,13 +407,11 @@ describe('Form Validation', () => {
 
   it('Default error attribute is added to input', () => {
     const FormWrapper = () => {
-      const formRef = useRef(null);
       formInfo = useFormalizer(
-        formRef,
         { field1: 'testValue', field2: '' },
         submitHandler
       );
-      return buildTestForm(formRef, formInfo, ['isRequired'], ['isRequired']);
+      return buildTestForm(formInfo, ['isRequired'], ['isRequired']);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -467,14 +437,12 @@ describe('Form Validation', () => {
     const settings = { invalidAttr: { 'input-has-error': 'yes' } };
 
     const FormWrapper = () => {
-      const formRef = useRef(null);
       formInfo = useFormalizer(
-        formRef,
         { field1: '', field2: 'testValue' },
         submitHandler,
         settings
       );
-      return buildTestForm(formRef, formInfo, ['isRequired'], ['isRequired']);
+      return buildTestForm(formInfo, ['isRequired'], ['isRequired']);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -503,13 +471,11 @@ describe('Form Validation', () => {
     FormalizerSettings.invalidAttr = { 'input-has-error': 'yes' };
 
     const FormWrapper = () => {
-      const formRef = useRef(null);
       formInfo = useFormalizer(
-        formRef,
         { field1: '', field2: 'testValue' },
         submitHandler
       );
-      return buildTestForm(formRef, formInfo, ['isRequired'], ['isRequired']);
+      return buildTestForm(formInfo, ['isRequired'], ['isRequired']);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -536,10 +502,9 @@ describe('Form Validation', () => {
   });
 
   it('Form submission is prevented when there were errors in the form', () => {
-    const formRef = createRef();
     const FormWrapper = () => {
-      formInfo = useFormalizer(formRef, { field1: '', field2: '' });
-      return buildTestForm(formRef, formInfo, ['isRequired'], []);
+      formInfo = useFormalizer({ field1: '', field2: '' });
+      return buildTestForm(formInfo, ['isRequired'], []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -548,7 +513,7 @@ describe('Form Validation', () => {
 
     // actually submit the form
     act(() => {
-      formRef.current.dispatchEvent(new Event('submit'));
+      formInfo.formRef.current.dispatchEvent(new Event('submit'));
     });
     performAssertions(
       wrapper,
@@ -563,14 +528,8 @@ describe('Form Validation', () => {
 
   it('Custom validator function can be provided', () => {
     const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: 'test', field2: '' },
-        submitHandler
-      );
+      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
       return buildTestForm(
-        formRef,
         formInfo,
         [
           {
@@ -601,15 +560,9 @@ describe('Form Validation', () => {
   });
 
   it('Custom validator function mixed with built in validator by key can be provided together', () => {
-    const formRef = createRef();
     const FormWrapper = () => {
-      formInfo = useFormalizer(
-        formRef,
-        { field1: '', field2: '' },
-        submitHandler
-      );
+      formInfo = useFormalizer({ field1: '', field2: '' }, submitHandler);
       return buildTestForm(
-        formRef,
         formInfo,
         [
           'isRequired',
@@ -688,7 +641,7 @@ describe('Form Validation', () => {
     // now click on the submit button.
     // can't use simulate on the form submit button, or the form is not submitted.
     // See https://github.com/airbnb/enzyme/issues/308#issuecomment-255630011
-    formRef.current.dispatchEvent(new Event('submit'));
+    formInfo.formRef.current.dispatchEvent(new Event('submit'));
     performAssertions(
       wrapper,
       formInfo,
@@ -733,13 +686,8 @@ describe('Form Validation', () => {
 
     // first we test without giving options
     const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: '', field2: '' },
-        submitHandler
-      );
-      return buildTestForm(formRef, formInfo, ['mustNotBeEmpty'], []);
+      formInfo = useFormalizer({ field1: '', field2: '' }, submitHandler);
+      return buildTestForm(formInfo, ['mustNotBeEmpty'], []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -798,13 +746,8 @@ describe('Form Validation', () => {
     {
       // first we test without giving options
       const FormWrapper = () => {
-        const formRef = useRef(null);
-        formInfo = useFormalizer(
-          formRef,
-          { field1: 'test', field2: '' },
-          submitHandler
-        );
-        return buildTestForm(formRef, formInfo, ['mustContainLetterZ'], []);
+        formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+        return buildTestForm(formInfo, ['mustContainLetterZ'], []);
       };
 
       wrapper = mount(<FormWrapper />);
@@ -850,14 +793,8 @@ describe('Form Validation', () => {
     {
       // now test with the ignoreCase option and validate upper case Z is accepted
       const FormWrapper = () => {
-        const formRef = useRef(null);
-        formInfo = useFormalizer(
-          formRef,
-          { field1: 'test', field2: '' },
-          submitHandler
-        );
+        formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
         return buildTestForm(
-          formRef,
           formInfo,
           [
             {
@@ -931,14 +868,9 @@ describe('Form Validation', () => {
 
       GlobalValidators.isEmail = invalidValidatorDef;
 
-      const formRef = createRef();
       const FormWrapper = () => {
-        formInfo = useFormalizer(
-          formRef,
-          { field1: 'test', field2: '' },
-          submitHandler
-        );
-        return buildTestForm(formRef, formInfo, ['isEmail'], []);
+        formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+        return buildTestForm(formInfo, ['isEmail'], []);
       };
 
       wrapper = mount(
@@ -969,13 +901,8 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: 'test', field2: '' },
-        submitHandler
-      );
-      return buildTestForm(formRef, formInfo, ['mustBeEmail'], []);
+      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      return buildTestForm(formInfo, ['mustBeEmail'], []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1008,14 +935,8 @@ describe('Form Validation', () => {
 
   it('Custom validation using a string validator (referring to one a third-party validator) can be provided', () => {
     const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: 'test', field2: '' },
-        submitHandler
-      );
+      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
       return buildTestForm(
-        formRef,
         formInfo,
         [
           {
@@ -1062,14 +983,8 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: 'test', field2: '' },
-        submitHandler
-      );
+      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
       return buildTestForm(
-        formRef,
         formInfo,
         [
           {
@@ -1116,18 +1031,8 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: 'test', field2: '' },
-        submitHandler
-      );
-      return buildTestForm(
-        formRef,
-        formInfo,
-        [{ validator: 'mustBeEmail' }],
-        []
-      );
+      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      return buildTestForm(formInfo, [{ validator: 'mustBeEmail' }], []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1164,18 +1069,8 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: 'test', field2: '' },
-        submitHandler
-      );
-      return buildTestForm(
-        formRef,
-        formInfo,
-        [{ validator: 'mustBeEmail' }],
-        []
-      );
+      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      return buildTestForm(formInfo, [{ validator: 'mustBeEmail' }], []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1211,13 +1106,8 @@ describe('Form Validation', () => {
     delete GlobalValidators.mustBeEmail;
 
     const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: 'test', field2: '' },
-        submitHandler
-      );
-      return buildTestForm(formRef, formInfo, [{ validator: 'isEmail' }], []);
+      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      return buildTestForm(formInfo, [{ validator: 'isEmail' }], []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1253,13 +1143,8 @@ describe('Form Validation', () => {
     delete GlobalValidators.isEmail;
 
     const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: 'test', field2: '' },
-        submitHandler
-      );
-      return buildTestForm(formRef, formInfo, ['isEmail'], []);
+      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      return buildTestForm(formInfo, ['isEmail'], []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1304,13 +1189,11 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      const formRef = useRef(null);
       formInfo = useFormalizer(
-        formRef,
         { field1: 'test1', field2: 'test2' },
         submitHandler
       );
-      return buildTestForm(formRef, formInfo, customValidator, []);
+      return buildTestForm(formInfo, customValidator, []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1351,13 +1234,11 @@ describe('Form Validation', () => {
       };
 
       const FormWrapper = () => {
-        const formRef = useRef(null);
         formInfo = useFormalizer(
-          formRef,
           { field1: 'test1', field2: 'test2' },
           submitHandler
         );
-        return buildTestForm(formRef, formInfo, customValidator, []);
+        return buildTestForm(formInfo, customValidator, []);
       };
 
       wrapper = mount(<FormWrapper />);
@@ -1393,13 +1274,11 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      const formRef = useRef(null);
       formInfo = useFormalizer(
-        formRef,
         { field1: 'test1', field2: 'test2' },
         submitHandler
       );
-      return buildTestForm(formRef, formInfo, 'isFormDataPresent', []);
+      return buildTestForm(formInfo, 'isFormDataPresent', []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1422,13 +1301,8 @@ describe('Form Validation', () => {
 
   it('Can use built in mustMatch validator and it works correctly', () => {
     const FormWrapper = () => {
-      const formRef = useRef(null);
-      formInfo = useFormalizer(
-        formRef,
-        { field1: 'test', field2: '' },
-        submitHandler
-      );
-      return buildTestForm(formRef, formInfo, [], mustMatch('field1'));
+      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      return buildTestForm(formInfo, [], mustMatch('field1'));
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1468,21 +1342,19 @@ describe('Form Validation', () => {
       throw new Error('Ops, I am not as cool as I thought I was. :(');
     };
 
-    const formRef = createRef();
     const FormWrapper = () => {
       formInfo = useFormalizer(
-        formRef,
         { field1: 'test', field2: '' },
         submitHandlerThatThrows
       );
-      return buildTestForm(formRef, formInfo, ['isRequired'], []);
+      return buildTestForm(formInfo, ['isRequired'], []);
     };
 
     wrapper = mount(<FormWrapper />);
 
     act(() => {
       // submit the form
-      formRef.current.dispatchEvent(new Event('submit'));
+      formInfo.formRef.current.dispatchEvent(new Event('submit'));
     });
 
     // need to check things like this because JSDOM likes to eat exceptions thrown from event handlers.
@@ -1499,13 +1371,12 @@ describe('Form Validation', () => {
     // making sure there is not global validator for this
     delete GlobalValidators.mustBeEmail;
 
-    const formRef = createRef();
     const FormWrapper = () => {
-      formInfo = useFormalizer(formRef, {
+      formInfo = useFormalizer({
         field1: 'valid.email@email.com',
         field2: ''
       });
-      return buildTestForm(formRef, formInfo, [{ validator: 'isEmail' }], []);
+      return buildTestForm(formInfo, [{ validator: 'isEmail' }], []);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1514,7 +1385,7 @@ describe('Form Validation', () => {
 
     act(() => {
       // submit the form
-      formRef.current.dispatchEvent(new Event('submit'));
+      formInfo.formRef.current.dispatchEvent(new Event('submit'));
     });
 
     performAssertions(
@@ -1534,9 +1405,7 @@ describe('Form Validation', () => {
     spyOn(console, 'error');
 
     const FormWrapper = () => {
-      const formRef = useRef(null);
       formInfo = useFormalizer(
-        formRef,
         { field1: '', field2: 'testValue' },
         submitHandler,
         {
@@ -1544,7 +1413,7 @@ describe('Form Validation', () => {
           helperTextAttr: 'myHelperText'
         }
       );
-      return buildTestForm(formRef, formInfo, ['isRequired'], ['isRequired']);
+      return buildTestForm(formInfo, ['isRequired'], ['isRequired']);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1579,14 +1448,12 @@ describe('Form Validation', () => {
 
   it('Fields are updated when form value is set programmatically', () => {
     const FormWrapper = () => {
-      const formRef = useRef(null);
       formInfo = useFormalizer(
-        formRef,
         { field1: '', field2: 'testValue' },
         submitHandler,
         {}
       );
-      return buildTestForm(formRef, formInfo, ['isRequired'], ['isRequired']);
+      return buildTestForm(formInfo, ['isRequired'], ['isRequired']);
     };
 
     wrapper = mount(<FormWrapper />);
@@ -1617,14 +1484,12 @@ describe('Form Validation', () => {
 
   it('Handle unknown validator properly', () => {
     const FormWrapper = () => {
-      const formRef = useRef(null);
       formInfo = useFormalizer(
-        formRef,
         { field1: '', field2: 'testValue' },
         submitHandler,
         {}
       );
-      return buildTestForm(formRef, formInfo, ['unknownValidator'], []);
+      return buildTestForm(formInfo, ['unknownValidator'], []);
     };
 
     wrapper = mount(
@@ -1658,14 +1523,12 @@ describe('Form Validation', () => {
   ].forEach(v =>
     it(`Handle validator of invalid type "${v.type}"`, () => {
       const FormWrapper = () => {
-        const formRef = useRef(null);
         formInfo = useFormalizer(
-          formRef,
           { field1: '', field2: 'testValue' },
           submitHandler,
           {}
         );
-        return buildTestForm(formRef, formInfo, v.validator, []);
+        return buildTestForm(formInfo, v.validator, []);
       };
 
       wrapper = mount(
@@ -1714,14 +1577,12 @@ describe('Form Validation', () => {
       GlobalValidators.invalidValidator = v.validator;
 
       const FormWrapper = () => {
-        const formRef = useRef(null);
         formInfo = useFormalizer(
-          formRef,
           { field1: '', field2: 'testValue' },
           submitHandler,
           {}
         );
-        return buildTestForm(formRef, formInfo, ['invalidValidator'], []);
+        return buildTestForm(formInfo, ['invalidValidator'], []);
       };
 
       wrapper = mount(
@@ -1792,14 +1653,12 @@ describe('Form Validation', () => {
   ].forEach(v =>
     it(`Handle custom validator of invalid ${v.type}`, () => {
       const FormWrapper = () => {
-        const formRef = useRef(null);
         formInfo = useFormalizer(
-          formRef,
           { field1: '', field2: 'testValue' },
           submitHandler,
           {}
         );
-        return buildTestForm(formRef, formInfo, v.validator, []);
+        return buildTestForm(formInfo, v.validator, []);
       };
 
       wrapper = mount(
@@ -1853,14 +1712,12 @@ describe('Form Validation', () => {
 
       // attempt to use the missing dependency
       const FormWrapper = () => {
-        const formRef = useRef(null);
         formInfo = useFormalizer(
-          formRef,
           { field1: 'invalid', field2: '' },
           submitHandler,
           {}
         );
-        return buildTestForm(formRef, formInfo, v.validator, []);
+        return buildTestForm(formInfo, v.validator, []);
       };
 
       wrapper = mount(
@@ -1898,14 +1755,12 @@ describe('Form Validation', () => {
 
     // attempt to use the missing dependency
     const FormWrapper = () => {
-      const formRef = useRef(null);
       formInfo = useFormalizer(
-        formRef,
         { field1: 'invalid', field2: '' },
         submitHandler,
         {}
       );
-      return buildTestForm(formRef, formInfo, ['isEmail'], []);
+      return buildTestForm(formInfo, ['isEmail'], []);
     };
 
     wrapper = mount(

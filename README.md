@@ -30,8 +30,7 @@ npm install formalizer --save
 import { useFormalizer, mustMatch } from 'formalizer';
 
 const UserProfileComponent = () => {
-  const formRef = useRef(null);
-  const { useInput, errors, isValid } = useFormalizer(formRef);
+  const { formRef, useInput, errors, isValid } = useFormalizer();
 
   return (
     <form ref={formRef}>
