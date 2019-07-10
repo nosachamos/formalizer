@@ -243,16 +243,32 @@ export function setupForMaterialUI(): void {
 }
 
 export const useFormalizer = (
-  defaultValues: FormData,
+  initialValues: FormData,
   handleSubmit?: FormSubmitHandler,
   settings?: FormalizerSettingsType
 ) => {
+  // some basic validations
+  if (
+    !!initialValues &&
+    (typeof initialValues !== 'object' || Array.isArray(initialValues))
+  ) {
+    throw new Error(
+      'Formalizer: the given initial values argument is of an invalid type. Must be an object.'
+    );
+  }
+
+  if (!!handleSubmit && typeof handleSubmit !== 'function') {
+    throw new Error(
+      'Formalizer: the given form submit handler argument is of an invalid type. Must be a function.'
+    );
+  }
+
   const formRef = useRef(null) as MutableRefObject<HTMLFormElement | null>;
   const { invalidAttr, helperTextAttr } = settings
     ? settings
     : FormalizerSettings;
 
-  const formHandler = useState(defaultValues);
+  const formHandler = useState(initialValues ? initialValues : {});
   const errorHandler = useState<{ [key: string]: string }>({});
   const [mounted, setMounted] = useState(false);
 

@@ -333,6 +333,144 @@ describe('Form Validation', () => {
     );
   });
 
+  [
+    {
+      name: 'undefined',
+      value: undefined
+    },
+    {
+      name: 'null',
+      value: null
+    }
+  ].forEach(t =>
+    it(`Can ${t.name} initial form value.`, () => {
+      const FormWrapper = () => {
+        formInfo = useFormalizer(t.value, submitHandler, null);
+
+        return buildTestForm(formInfo, [], []);
+      };
+
+      wrapper = mount(<FormWrapper />);
+
+      expect(formInfo.isValid).toBe(true);
+
+      wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+      // form still valid, no validations given
+      performAssertions(
+        wrapper,
+        formInfo,
+        submitHandler,
+        undefined,
+        undefined,
+        true,
+        false
+      );
+    })
+  );
+
+  [
+    {
+      name: 'numeric',
+      value: 123
+    },
+    {
+      name: 'boolean',
+      value: true
+    },
+    {
+      name: 'array',
+      value: []
+    },
+    {
+      name: 'function',
+      value: () => {}
+    },
+    {
+      name: 'string',
+      value: 'invalid'
+    }
+  ].forEach(t =>
+    it(`Error raised when invalid initial form values of ${t.name} type is used.`, () => {
+      const callMount = () => useFormalizer(t.value, submitHandler, null);
+
+      expect(callMount).toThrowError(
+        new Error(
+          'Formalizer: the given initial values argument is of an invalid type. Must be an object.'
+        )
+      );
+    })
+  );
+
+  [
+    {
+      name: 'undefined',
+      value: undefined
+    },
+    {
+      name: 'null',
+      value: null
+    }
+  ].forEach(t =>
+    it(`Can ${t.name} form submission handler.`, () => {
+      const FormWrapper = () => {
+        formInfo = useFormalizer({}, t.value, null);
+
+        return buildTestForm(formInfo, [], []);
+      };
+
+      wrapper = mount(<FormWrapper />);
+
+      expect(formInfo.isValid).toBe(true);
+
+      wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+      // form still valid, no validations given
+      performAssertions(
+        wrapper,
+        formInfo,
+        submitHandler,
+        undefined,
+        undefined,
+        true,
+        false
+      );
+    })
+  );
+
+  [
+    {
+      name: 'numeric',
+      value: 123
+    },
+    {
+      name: 'boolean',
+      value: true
+    },
+    {
+      name: 'object',
+      value: {}
+    },
+    {
+      name: 'array',
+      value: []
+    },
+    {
+      name: 'string',
+      value: 'invalid'
+    }
+  ].forEach(t =>
+    it(`Error raised when invalid form submit handler of ${t.name} type is used.`, () => {
+      const callMount = () => useFormalizer({}, t.value);
+
+      expect(callMount).toThrowError(
+        new Error(
+          'Formalizer: the given form submit handler argument is of an invalid type. Must be a function.'
+        )
+      );
+    })
+  );
+
   it('Can handle no fields to validate given: form is always valid', () => {
     const FormWrapper = () => {
       formInfo = useFormalizer({}, submitHandler, null);
