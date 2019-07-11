@@ -66,10 +66,10 @@
     "node": ">=8.9"
   },
   "peerDependencies": {
-    "react": "^16.8.6"
+    "react": "^16.8.0"
   },
   "optionalDependencies": {
-    "validator": "^11.0.0"
+    "validator": "^4.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
