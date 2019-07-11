@@ -29,8 +29,8 @@ const settings = {
 };
 
 const { formRef, useInput, errors } = useFormalizer(
-  initialValues,
   submitHandler,
+  initialValues,
   settings // <-- your custom settings for this form only
 );
 ```

@@ -199,6 +199,18 @@ Then use it to disable the Submit button when the `isValid` true is not true:
 </button>
 ```
 
+## Handling form submission
+
+Finally, we want to be able to do something with the form data when the form is valid and the user clicks Submit. With Formalizer, you don't need to add onSubmit handlers yourself. Instead, pass in the submit handler function to the `useFormalizer` hook, and it will be invoked when the user submits a valid form:
+
+```jsx
+const submitHandler = (event, formData) => {
+  // do something with formData, such as send it to the server
+};
+
+const { formRef, useInput, errors, isValid } = useFormalizer(submitHandler);
+```
+
 ## Setting form initial values
 
 Suppose that in our component, we could be given a `userProfile` prop. If set, that should be used to set the form initial values (just the email, as we won't save the password anywhere):
@@ -213,21 +225,9 @@ const UserProfileComponent = ({userProfile}) => {
 To accomplish that, we simply pass it as the `useFormalizer` hook's first argument:
 
 ```jsx
-const { formRef, useInput, errors, isValid } = useFormalizer(userProfile);
-```
-
-## Handling form submission
-
-Finally, we want to be able to do something with the form data when the form is valid and the user clicks Submit. With Formalizer, you don't need to add onSubmit handlers yourself. Instead, pass in the submit handler function to the `useFormalizer` hook, and it will be invoked when the user submits a valid form:
-
-```jsx
-const submitHandler = (event, formData) => {
-  // do something with formData, such as send it to the server
-};
-
 const { formRef, useInput, errors, isValid } = useFormalizer(
-  userProfile,
-  submitHandler
+  submitHandler,
+  userProfile
 );
 ```
 
@@ -249,7 +249,7 @@ const UserProfileComponent = ({userProfile}) =>
         // do something with formData, such as send it to the server
     }
 
-    const { formRef, useInput, errors, isValid } = useFormalizer(userProfile, handleSubmit);
+    const { formRef, useInput, errors, isValid } = useFormalizer(handleSubmit, userProfile);
 
     return (
         <form ref={formRef}>

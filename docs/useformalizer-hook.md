@@ -47,36 +47,11 @@ Let's examine each of these items returned:
 | `formValues`   | object   | This object contains the set of values currently in the form. Not commonly used as this data is also passed as an argument into form submission handlers.                                                                     |
 | `setValues`    | function | Although these aren't common these days, certain use cases such as programmatically resetting a form require programmatically altering the form values. You can use this function to accomplish that.                         |
 
-## Setting form initial values
-
-A common use case you are likely to see is to initiate the form with certain values. The most common example is of editing an existing entity.
-
-The `useFormalizer` hook takes as its first argument an object containing the initial values for the form. You won't need to also set these values on the inputs: simply passing them to Formalizer is enough - all your inputs will be rendered with their initial values set.
-
-For example, to initialize the following form with a given email address value:
-
-```jsx
-import { useFormalizer } from 'formalizer';
-
-const EmailFormComponent = () => {
-  const { formRef, useInput, errors } = useFormalizer({
-    email: 'initial.email@gmail.com'
-  });
-
-  return (
-    <form ref={formRef}>
-      <input {...useInput('email', 'isEmail')} />
-      <span>{errors['email']}</span>
-    </form>
-  );
-};
-```
-
 ## Handling form submissions
 
 Once your validations have been set, you are also likely to need to handle form submissions.
 
-With Formalizer, instead of directly attaching an `onSubmit` handler to your form, you will pass your event handler as the `useFormalizer` hook's second argument, like so:
+With Formalizer, instead of directly attaching an `onSubmit` handler to your form, you will pass your event handler as the `useFormalizer` hook's first argument, like so:
 
 ```jsx
 import { useFormalizer } from 'formalizer';
@@ -86,7 +61,7 @@ const EmailFormComponent = () => {
     // so something with form data, such as dispatching a request to a server.
   };
 
-  const { formRef, useInput, errors } = useFormalizer(null, submitHandler);
+  const { formRef, useInput, errors } = useFormalizer(submitHandler);
 
   return (
     <form ref={formRef}>
@@ -98,3 +73,32 @@ const EmailFormComponent = () => {
 ```
 
 Formalizer will only invoke your submit handler when the form is submitted with valid values, so you don't need to perform any checks at that point. Besides the original submit event, the complete form data is passed into the event handler as a convenience.
+
+## Setting form initial values
+
+A common use case you are likely to see is to initiate the form with certain values. The most common example is of editing an existing entity.
+
+The `useFormalizer` hook takes as its second argument an object containing the initial values for the form. You won't need to also set these values on the inputs: simply passing them to Formalizer is enough - all your inputs will be rendered with their initial values set.
+
+For example, to initialize the following form with a given email address value:
+
+```jsx
+import { useFormalizer } from 'formalizer';
+
+const EmailFormComponent = () => {
+  const submitHandler = (event, formData) => {
+    // so something with form data, such as dispatching a request to a server.
+  };
+
+  const { formRef, useInput, errors } = useFormalizer(submitHandler, {
+    email: 'initial.email@gmail.com'
+  });
+
+  return (
+    <form ref={formRef}>
+      <input {...useInput('email', 'isEmail')} />
+      <span>{errors['email']}</span>
+    </form>
+  );
+};
+```

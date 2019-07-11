@@ -218,8 +218,8 @@ describe('Form Validation', () => {
     it(data.title, () => {
       const FormWrapper = () => {
         formInfo = useFormalizer(
-          { field1: data.field1Value, field2: data.field2Value },
           submitHandler,
+          { field1: data.field1Value, field2: data.field2Value },
           null
         );
 
@@ -249,7 +249,7 @@ describe('Form Validation', () => {
 
   it('Validators can be negated', () => {
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: '', field2: '' }, submitHandler, null);
+      formInfo = useFormalizer(submitHandler, { field1: '', field2: '' }, null);
 
       return buildTestForm(
         formInfo,
@@ -293,7 +293,7 @@ describe('Form Validation', () => {
 
   it('Can handle no validations given: form is always valid', () => {
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: '', field2: '' }, submitHandler, null);
+      formInfo = useFormalizer(submitHandler, { field1: '', field2: '' }, null);
 
       return buildTestForm(formInfo, [], []);
     };
@@ -345,7 +345,7 @@ describe('Form Validation', () => {
   ].forEach(t =>
     it(`Can ${t.name} initial form value.`, () => {
       const FormWrapper = () => {
-        formInfo = useFormalizer(t.value, submitHandler, null);
+        formInfo = useFormalizer(submitHandler, t.value, null);
 
         return buildTestForm(formInfo, [], []);
       };
@@ -392,7 +392,7 @@ describe('Form Validation', () => {
     }
   ].forEach(t =>
     it(`Error raised when invalid initial form values of ${t.name} type is used.`, () => {
-      const callMount = () => useFormalizer(t.value, submitHandler, null);
+      const callMount = () => useFormalizer(submitHandler, t.value, null);
 
       expect(callMount).toThrowError(
         new Error(
@@ -414,7 +414,7 @@ describe('Form Validation', () => {
   ].forEach(t =>
     it(`Can ${t.name} form submission handler.`, () => {
       const FormWrapper = () => {
-        formInfo = useFormalizer({}, t.value, null);
+        formInfo = useFormalizer(t.value, {}, null);
 
         return buildTestForm(formInfo, [], []);
       };
@@ -461,7 +461,7 @@ describe('Form Validation', () => {
     }
   ].forEach(t =>
     it(`Error raised when invalid form submit handler of ${t.name} type is used.`, () => {
-      const callMount = () => useFormalizer({}, t.value);
+      const callMount = () => useFormalizer(t.value, {});
 
       expect(callMount).toThrowError(
         new Error(
@@ -473,7 +473,7 @@ describe('Form Validation', () => {
 
   it('Can handle no fields to validate given: form is always valid', () => {
     const FormWrapper = () => {
-      formInfo = useFormalizer({}, submitHandler, null);
+      formInfo = useFormalizer(submitHandler, {}, null);
 
       return (
         <form ref={formInfo.formRef}>
@@ -519,7 +519,7 @@ describe('Form Validation', () => {
     GlobalValidators.isRequired = CUSTOM_ERROR_MESSAGE;
 
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: '', field2: '' }, submitHandler, null);
+      formInfo = useFormalizer(submitHandler, { field1: '', field2: '' }, null);
 
       return buildTestForm(formInfo, ['isRequired'], ['isRequired']);
     };
@@ -545,10 +545,10 @@ describe('Form Validation', () => {
 
   it('Default error attribute is added to input', () => {
     const FormWrapper = () => {
-      formInfo = useFormalizer(
-        { field1: 'testValue', field2: '' },
-        submitHandler
-      );
+      formInfo = useFormalizer(submitHandler, {
+        field1: 'testValue',
+        field2: ''
+      });
       return buildTestForm(formInfo, ['isRequired'], ['isRequired']);
     };
 
@@ -576,8 +576,8 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       formInfo = useFormalizer(
-        { field1: '', field2: 'testValue' },
         submitHandler,
+        { field1: '', field2: 'testValue' },
         settings
       );
       return buildTestForm(formInfo, ['isRequired'], ['isRequired']);
@@ -609,10 +609,10 @@ describe('Form Validation', () => {
     FormalizerSettings.invalidAttr = { 'input-has-error': 'yes' };
 
     const FormWrapper = () => {
-      formInfo = useFormalizer(
-        { field1: '', field2: 'testValue' },
-        submitHandler
-      );
+      formInfo = useFormalizer(submitHandler, {
+        field1: '',
+        field2: 'testValue'
+      });
       return buildTestForm(formInfo, ['isRequired'], ['isRequired']);
     };
 
@@ -641,7 +641,7 @@ describe('Form Validation', () => {
 
   it('Form submission is prevented when there were errors in the form', () => {
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: '', field2: '' });
+      formInfo = useFormalizer(null, { field1: '', field2: '' });
       return buildTestForm(formInfo, ['isRequired'], []);
     };
 
@@ -666,7 +666,7 @@ describe('Form Validation', () => {
 
   it('Custom validator function can be provided', () => {
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
       return buildTestForm(
         formInfo,
         [
@@ -699,7 +699,7 @@ describe('Form Validation', () => {
 
   it('Custom validator function mixed with built in validator by key can be provided together', () => {
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: '', field2: '' }, submitHandler);
+      formInfo = useFormalizer(submitHandler, { field1: '', field2: '' });
       return buildTestForm(
         formInfo,
         [
@@ -824,7 +824,7 @@ describe('Form Validation', () => {
 
     // first we test without giving options
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: '', field2: '' }, submitHandler);
+      formInfo = useFormalizer(submitHandler, { field1: '', field2: '' });
       return buildTestForm(formInfo, ['mustNotBeEmpty'], []);
     };
 
@@ -884,7 +884,7 @@ describe('Form Validation', () => {
     {
       // first we test without giving options
       const FormWrapper = () => {
-        formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+        formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
         return buildTestForm(formInfo, ['mustContainLetterZ'], []);
       };
 
@@ -931,7 +931,7 @@ describe('Form Validation', () => {
     {
       // now test with the ignoreCase option and validate upper case Z is accepted
       const FormWrapper = () => {
-        formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+        formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
         return buildTestForm(
           formInfo,
           [
@@ -1007,7 +1007,7 @@ describe('Form Validation', () => {
       GlobalValidators.isEmail = invalidValidatorDef;
 
       const FormWrapper = () => {
-        formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+        formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
         return buildTestForm(formInfo, ['isEmail'], []);
       };
 
@@ -1039,7 +1039,7 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
       return buildTestForm(formInfo, ['mustBeEmail'], []);
     };
 
@@ -1073,7 +1073,7 @@ describe('Form Validation', () => {
 
   it('Custom validation using a string validator (referring to one a third-party validator) can be provided', () => {
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
       return buildTestForm(
         formInfo,
         [
@@ -1121,7 +1121,7 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
       return buildTestForm(
         formInfo,
         [
@@ -1169,7 +1169,7 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
       return buildTestForm(formInfo, [{ validator: 'mustBeEmail' }], []);
     };
 
@@ -1207,7 +1207,7 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
       return buildTestForm(formInfo, [{ validator: 'mustBeEmail' }], []);
     };
 
@@ -1244,7 +1244,7 @@ describe('Form Validation', () => {
     delete GlobalValidators.mustBeEmail;
 
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
       return buildTestForm(formInfo, [{ validator: 'isEmail' }], []);
     };
 
@@ -1281,7 +1281,7 @@ describe('Form Validation', () => {
     delete GlobalValidators.isEmail;
 
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
       return buildTestForm(formInfo, ['isEmail'], []);
     };
 
@@ -1327,10 +1327,10 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      formInfo = useFormalizer(
-        { field1: 'test1', field2: 'test2' },
-        submitHandler
-      );
+      formInfo = useFormalizer(submitHandler, {
+        field1: 'test1',
+        field2: 'test2'
+      });
       return buildTestForm(formInfo, customValidator, []);
     };
 
@@ -1372,10 +1372,10 @@ describe('Form Validation', () => {
       };
 
       const FormWrapper = () => {
-        formInfo = useFormalizer(
-          { field1: 'test1', field2: 'test2' },
-          submitHandler
-        );
+        formInfo = useFormalizer(submitHandler, {
+          field1: 'test1',
+          field2: 'test2'
+        });
         return buildTestForm(formInfo, customValidator, []);
       };
 
@@ -1412,10 +1412,10 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      formInfo = useFormalizer(
-        { field1: 'test1', field2: 'test2' },
-        submitHandler
-      );
+      formInfo = useFormalizer(submitHandler, {
+        field1: 'test1',
+        field2: 'test2'
+      });
       return buildTestForm(formInfo, 'isFormDataPresent', []);
     };
 
@@ -1439,7 +1439,7 @@ describe('Form Validation', () => {
 
   it('Can use built in mustMatch validator and it works correctly', () => {
     const FormWrapper = () => {
-      formInfo = useFormalizer({ field1: 'test', field2: '' }, submitHandler);
+      formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
       return buildTestForm(formInfo, [], mustMatch('field1'));
     };
 
@@ -1481,10 +1481,10 @@ describe('Form Validation', () => {
     };
 
     const FormWrapper = () => {
-      formInfo = useFormalizer(
-        { field1: 'test', field2: '' },
-        submitHandlerThatThrows
-      );
+      formInfo = useFormalizer(submitHandlerThatThrows, {
+        field1: 'test',
+        field2: ''
+      });
       return buildTestForm(formInfo, ['isRequired'], []);
     };
 
@@ -1510,7 +1510,7 @@ describe('Form Validation', () => {
     delete GlobalValidators.mustBeEmail;
 
     const FormWrapper = () => {
-      formInfo = useFormalizer({
+      formInfo = useFormalizer(null, {
         field1: 'valid.email@email.com',
         field2: ''
       });
@@ -1544,8 +1544,8 @@ describe('Form Validation', () => {
 
     const FormWrapper = () => {
       formInfo = useFormalizer(
-        { field1: '', field2: 'testValue' },
         submitHandler,
+        { field1: '', field2: 'testValue' },
         {
           invalidAttr: { 'input-has-error': 'yes' },
           helperTextAttr: 'myHelperText'
@@ -1587,8 +1587,8 @@ describe('Form Validation', () => {
   it('Fields are updated when form value is set programmatically', () => {
     const FormWrapper = () => {
       formInfo = useFormalizer(
-        { field1: '', field2: 'testValue' },
         submitHandler,
+        { field1: '', field2: 'testValue' },
         {}
       );
       return buildTestForm(formInfo, ['isRequired'], ['isRequired']);
@@ -1623,8 +1623,8 @@ describe('Form Validation', () => {
   it('Handle unknown validator properly', () => {
     const FormWrapper = () => {
       formInfo = useFormalizer(
-        { field1: '', field2: 'testValue' },
         submitHandler,
+        { field1: '', field2: 'testValue' },
         {}
       );
       return buildTestForm(formInfo, ['unknownValidator'], []);
@@ -1662,8 +1662,8 @@ describe('Form Validation', () => {
     it(`Handle validator of invalid type "${v.type}"`, () => {
       const FormWrapper = () => {
         formInfo = useFormalizer(
-          { field1: '', field2: 'testValue' },
           submitHandler,
+          { field1: '', field2: 'testValue' },
           {}
         );
         return buildTestForm(formInfo, v.validator, []);
@@ -1716,8 +1716,8 @@ describe('Form Validation', () => {
 
       const FormWrapper = () => {
         formInfo = useFormalizer(
-          { field1: '', field2: 'testValue' },
           submitHandler,
+          { field1: '', field2: 'testValue' },
           {}
         );
         return buildTestForm(formInfo, ['invalidValidator'], []);
@@ -1792,8 +1792,8 @@ describe('Form Validation', () => {
     it(`Handle custom validator of invalid ${v.type}`, () => {
       const FormWrapper = () => {
         formInfo = useFormalizer(
-          { field1: '', field2: 'testValue' },
           submitHandler,
+          { field1: '', field2: 'testValue' },
           {}
         );
         return buildTestForm(formInfo, v.validator, []);
@@ -1851,8 +1851,8 @@ describe('Form Validation', () => {
       // attempt to use the missing dependency
       const FormWrapper = () => {
         formInfo = useFormalizer(
-          { field1: 'invalid', field2: '' },
           submitHandler,
+          { field1: 'invalid', field2: '' },
           {}
         );
         return buildTestForm(formInfo, v.validator, []);
@@ -1894,8 +1894,8 @@ describe('Form Validation', () => {
     // attempt to use the missing dependency
     const FormWrapper = () => {
       formInfo = useFormalizer(
-        { field1: 'invalid', field2: '' },
         submitHandler,
+        { field1: 'invalid', field2: '' },
         {}
       );
       return buildTestForm(formInfo, ['isEmail'], []);
