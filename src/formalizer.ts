@@ -417,11 +417,11 @@ const loadValidatorDependency = () => {
   // check if we support the validator version - throw error if unsupported
   if (validatorVersion) {
     const versionParts = validatorVersion.split('.');
-    if (parseInt(versionParts[0], 10) < 11) {
+    if (parseInt(versionParts[0], 10) < 4) {
       // major version is 11 or higher
       validator = undefined;
       throw new Error(
-        `Formalizer: unsupported version of the validator library found (${validatorVersion}). Please upgrade to 11.0.0 or higher.`
+        `Formalizer: unsupported version of the validator library found (${validatorVersion}). Please upgrade to 4.0.0 or higher.`
       );
     }
   }
