@@ -52,6 +52,25 @@ Must be provided.
 
 The error message to display when this validator rejects a value.
 
+This can be either a plain string, or a function that returns a string.
+
+##### Dynamic error messages
+
+Providing a function allows you to dynamically generate the error message based on the value of the input being validated, or other data associated with your form.
+
+Here is an example of a validator using a dynamically generated error message:
+
+```jsx
+const validateEmail = {
+  validator: 'isEmail',
+  errorMessage: (value, formData) => {
+    return `The value "${value}" is not a valid email address`;
+  }
+};
+```
+
+As you can see above, the message will change as the user types new values.
+
 If none is provided, a generic error message is used instead. You can access this generic message by importing the `DEFAULT_VALIDATION_ERROR_MESSAGE` constant.
 
 ### negate
