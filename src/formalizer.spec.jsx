@@ -1032,6 +1032,183 @@ describe('Form Validation', () => {
     })
   );
 
+  it('Custom global validation using a dynamic error message can be provided', () => {
+    GlobalValidators.dynamicErrorMsgValidator = {
+      validator: () => false,
+      errorMessage: (value, formData) => {
+        const formDataStr = JSON.stringify(formData);
+        return `Dynamic error msg for value "${value}" and form data "${formDataStr}"`;
+      }
+    };
+
+    const FormWrapper = () => {
+      formInfo = useFormalizer(submitHandler, {
+        field1: 'test',
+        field2: 'abc'
+      });
+      return buildTestForm(
+        formInfo,
+        ['dynamicErrorMsgValidator'],
+        ['dynamicErrorMsgValidator']
+      );
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      `Dynamic error msg for value "test" and form data "{"field1":"test","field2":"abc"}"`,
+      `Dynamic error msg for value "abc" and form data "{"field1":"test","field2":"abc"}"`,
+      false,
+      false
+    );
+  });
+
+  it('Custom validation using a dynamic error message can be provided', () => {
+    const dynamicErrorMsgValidator = {
+      validator: () => false,
+      errorMessage: (value, formData) => {
+        const formDataStr = JSON.stringify(formData);
+        return `Dynamic error msg for value "${value}" and form data "${formDataStr}"`;
+      }
+    };
+
+    const FormWrapper = () => {
+      formInfo = useFormalizer(submitHandler, {
+        field1: 'test',
+        field2: 'abc'
+      });
+      return buildTestForm(
+        formInfo,
+        [dynamicErrorMsgValidator],
+        [dynamicErrorMsgValidator]
+      );
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      `Dynamic error msg for value "test" and form data "{"field1":"test","field2":"abc"}"`,
+      `Dynamic error msg for value "abc" and form data "{"field1":"test","field2":"abc"}"`,
+      false,
+      false
+    );
+  });
+
+  it('Custom validation using a third party validator function and a dynamic error message can be provided', () => {
+    const dynamicErrorMsgValidator = {
+      validator: 'isEmail',
+      errorMessage: (value, formData) => {
+        const formDataStr = JSON.stringify(formData);
+        return `Dynamic error msg for value "${value}" and form data "${formDataStr}"`;
+      }
+    };
+
+    const FormWrapper = () => {
+      formInfo = useFormalizer(submitHandler, {
+        field1: 'test',
+        field2: 'abc'
+      });
+      return buildTestForm(
+        formInfo,
+        [dynamicErrorMsgValidator],
+        [dynamicErrorMsgValidator]
+      );
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      `Dynamic error msg for value "test" and form data "{"field1":"test","field2":"abc"}"`,
+      `Dynamic error msg for value "abc" and form data "{"field1":"test","field2":"abc"}"`,
+      false,
+      false
+    );
+
+    typeIntoInput(wrapper.find('[name="field1"]'), 'valid.email@email.com');
+    typeIntoInput(wrapper.find('[name="field2"]'), 'valid.email@email.com');
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      undefined,
+      undefined,
+      true,
+      false
+    );
+  });
+
+  [
+    {
+      name: 'numeric',
+      value: 123
+    },
+    {
+      name: 'boolean',
+      value: true
+    },
+    {
+      name: 'array',
+      value: []
+    },
+    {
+      name: 'array',
+      value: {}
+    }
+  ].forEach(v =>
+    it(`Handle an invalid error message of ${v.name} type correctly`, () => {
+      const originalError = console.error;
+      console.error = jest.fn(); // prevents React 16 error boundary warning
+
+      const customValidator = {
+        validator: () => false,
+        errorMessage: v.value
+      };
+
+      const FormWrapper = () => {
+        formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
+        return buildTestForm(formInfo, [customValidator], []);
+      };
+
+      wrapper = mount(
+        <ErrorBoundary>
+          <FormWrapper />
+        </ErrorBoundary>
+      );
+
+      const callMount = () =>
+        wrapper.find('[data-test="force-validation-button"]').simulate('click');
+
+      expect(callMount).toThrowError(
+        new Error(
+          `Formalizer: a validator's errorMessage field must be either a string or a function that returns a string.`
+        )
+      );
+
+      console.error = originalError;
+    })
+  );
+
   it("Custom global validation using a string validator (referring to one of validator's functions) can be provided", () => {
     GlobalValidators.mustBeEmail = {
       errorMessage: 'This needs to be an email.',
@@ -1918,7 +2095,7 @@ describe('Form Validation', () => {
     try {
       expect(callMount).toThrowError(
         new Error(
-          `Formalizer: unsupported version of the validator library found (1.0.0). Please upgrade to 11.0.0 or higher.`
+          `Formalizer: unsupported version of the validator library found (1.0.0). Please upgrade to 4.0.0 or higher.`
         )
       );
     } finally {
