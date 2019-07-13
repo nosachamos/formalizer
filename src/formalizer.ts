@@ -36,7 +36,7 @@ type ValidatorFunction = (value: any, options: Options) => boolean;
 
 interface InputValidationConfig {
   key?: string;
-  errorMessage?: string;
+  errorMessage?: string | ErrorMessageFunction;
   negate?: boolean;
   options?: Options;
   validator?: ValidatorFunction | string;
@@ -56,6 +56,8 @@ type FormSubmitHandler = (
   e: Event,
   formValues: { [ley: string]: any }
 ) => boolean;
+
+type ErrorMessageFunction = (value: string, formData: FormData) => string;
 
 interface InputValidationByKey {
   [key: string]: InputValidationConfig | string;
@@ -427,6 +429,22 @@ const loadValidatorDependency = () => {
   return validator !== undefined;
 };
 
+const getErrorMessage = (
+  errorMsg: string | ErrorMessageFunction | undefined,
+  value: string,
+  formData: FormData
+) => {
+  if (typeof errorMsg === 'string') {
+    return errorMsg;
+  } else if (typeof errorMsg === 'function') {
+    return errorMsg(value, formData);
+  } else {
+    throw new Error(
+      `Formalizer: a validator's errorMessage field must be either a string or a function that returns a string.`
+    );
+  }
+};
+
 /**
  * Returns either unmet rule, or null
  * @param value
@@ -487,7 +505,11 @@ export const validate = (
         }
 
         if (propValidator.errorMessage) {
-          errorMsg = propValidator.errorMessage;
+          errorMsg = getErrorMessage(
+            propValidator.errorMessage,
+            value,
+            formData
+          );
         }
 
         negate = propValidator.negate === void 0 ? false : propValidator.negate;
@@ -535,7 +557,7 @@ export const validate = (
   });
 
   let unmetValidationKey: string | undefined = void 0;
-  let errorMessage: string | undefined = void 0;
+  let errorMessage: string | ErrorMessageFunction | undefined = void 0;
   let isValid = true;
 
   for (const validationConfig of fieldsToValidate) {
@@ -552,8 +574,6 @@ export const validate = (
       case 'isRequired':
         if (!value || value.trim().length === 0) {
           isValid = false;
-          unmetValidationKey = property;
-          errorMessage = validationConfig.errorMessage;
         }
         break;
 
@@ -574,7 +594,11 @@ export const validate = (
 
     if (!isValid) {
       unmetValidationKey = property;
-      errorMessage = validationConfig.errorMessage;
+      errorMessage = getErrorMessage(
+        validationConfig.errorMessage,
+        value,
+        formData
+      );
       break;
     }
   }
