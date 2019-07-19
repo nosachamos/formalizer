@@ -9,10 +9,10 @@ import {
 } from 'react';
 import { useFormInput } from './use-form-input';
 
-type FormalizerSettingsType = {
+interface FormalizerSettingsType {
   invalidAttr?: { [key: string]: any };
   helperTextAttr?: string;
-};
+}
 
 export const FormalizerSettings: FormalizerSettingsType = {
   helperTextAttr: undefined,
@@ -29,13 +29,13 @@ export const DEFAULT_VALIDATION_ERROR_MESSAGE = 'This field is not valid.';
 
 export type ValidatorFunction = (value: any, options: Options) => boolean;
 
-export type InputValidationConfig = {
+export interface InputValidationConfig {
   key?: string;
   errorMessage?: string | ErrorMessageFunction;
   negate?: boolean;
   options?: Options;
   validator?: ValidatorFunction | string;
-};
+}
 
 export const isInputValidationConfig = (
   value: any
@@ -45,9 +45,9 @@ export const isInputValidationConfig = (
   (typeof value.validator === 'string' ||
     typeof value.validator === 'function');
 
-export type FormData = {
+export interface FormData {
   [key: string]: any;
-};
+}
 
 type FormSubmitHandler = (
   formValues: { [ley: string]: any },
@@ -59,9 +59,9 @@ export type ErrorMessageFunction = (
   formData: FormData
 ) => string;
 
-export type InputValidationByKey = {
+export interface InputValidationByKey {
   [key: string]: InputValidationConfig | string;
-};
+}
 
 type InputValidation = InputValidationConfig | string;
 
@@ -71,7 +71,7 @@ type ValidationErrorUpdater = (
   errorMessage?: string
 ) => void;
 
-export type FormInputParams = {
+export interface FormInputParams {
   name: string;
   formHandler: [FormData, Dispatch<SetStateAction<FormData>>];
   formRef: MutableRefObject<HTMLFormElement | null>;
@@ -80,9 +80,9 @@ export type FormInputParams = {
   submitHandler?: FormSubmitHandler;
   validation: InputValidation[];
   helperTextAttr?: string;
-};
+}
 
-export type InputAttributes = {
+export interface InputAttributes {
   value: any;
   name: string;
   onKeyPress: (e: KeyboardEvent) => void;
@@ -90,12 +90,12 @@ export type InputAttributes = {
   onBlur: () => any;
   helperTextObj?: { [key: string]: string };
   invalidAttr?: object;
-};
+}
 
-export type Options = {
+export interface Options {
   [key: string]: any;
   formData: { [key: string]: string };
-};
+}
 
 export function setupForMaterialUI(): void {
   FormalizerSettings.invalidAttr = { error: true };
