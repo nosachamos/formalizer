@@ -4,11 +4,11 @@ import {
   DEFAULT_VALIDATION_ERROR_MESSAGE,
   FormalizerSettings,
   GlobalValidators,
-  mustMatch,
   setupForMaterialUI,
   useFormalizer
 } from './formalizer';
 import { act } from '@testing-library/react';
+import { mustMatch } from './must-match.validator';
 
 class ErrorBoundary extends React.Component {
   componentDidCatch(error, info) {

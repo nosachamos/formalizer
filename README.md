@@ -30,7 +30,7 @@ npm install formalizer --save
 # Sample Usage
 
 ```jsx
-import { useFormalizer, mustMatch } from 'formalizer';
+import { useFormalizer } from 'formalizer';
 
 const UserProfileComponent = () => {
   const { formRef, useInput, errors, isValid } = useFormalizer();
