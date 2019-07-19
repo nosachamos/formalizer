@@ -1,12 +1,11 @@
 import {
   Dispatch,
   FormEvent,
+  MutableRefObject,
   SetStateAction,
-  useCallback,
   useEffect,
   useRef,
-  useState,
-  MutableRefObject
+  useState
 } from 'react';
 
 // apparently can't import a type from an optional dependency, so use "any" until this is resolved.
@@ -53,8 +52,8 @@ interface FormData {
 }
 
 type FormSubmitHandler = (
-  e: Event,
-  formValues: { [ley: string]: any }
+  formValues: { [ley: string]: any },
+  e?: Event
 ) => boolean;
 
 type ErrorMessageFunction = (value: string, formData: FormData) => string;
@@ -74,8 +73,10 @@ type ValidationErrorUpdater = (
 interface FormInputParams {
   name: string;
   formHandler: [FormData, Dispatch<SetStateAction<FormData>>];
+  formRef: MutableRefObject<HTMLFormElement | null>;
   updateError: ValidationErrorUpdater;
   invalidAttr?: object;
+  submitHandler?: FormSubmitHandler;
   validation: InputValidation[];
   helperTextAttr?: string;
 }
@@ -83,6 +84,7 @@ interface FormInputParams {
 interface InputAttributes {
   value: any;
   name: string;
+  onKeyPress: (e: KeyboardEvent) => void;
   onChange: (e: FormEvent<HTMLInputElement>) => any;
   onBlur: () => any;
   helperTextObj?: { [key: string]: string };
@@ -103,80 +105,105 @@ export const mustMatch = (fieldName: string): InputValidationConfig => ({
 export const useFormInput = ({
   name,
   formHandler,
+  formRef,
   validation = [],
   updateError,
   invalidAttr = {},
+  submitHandler,
   helperTextAttr
 }: FormInputParams): InputAttributes => {
   const [formData, setFormData] = formHandler;
-  const formValue = formData[name] || '';
-
-  const [value, setValue] = useState(formValue);
+  const formValue = formData[name];
+  const [isCheckboxInput, setIsCheckboxInput] = useState(false);
+  const [value, setValue] = useState<string | boolean>(formValue);
   const [isValid, setIsValid] = useState(true);
   const [isTouched, setIsTouched] = useState(false);
   const [helperText, setHelperText] = useState<string | undefined>(void 0);
 
-  const handleValidation = useCallback(
-    (inputValue: any) => {
-      let validationToProcess: Array<string | InputValidationConfig>;
+  const handleValidationRef = useRef(
+    (
+      inputValue: any,
+      currentFormData: FormData,
+      invokeSubmitHandler: boolean,
+      inputIsTouched: boolean
+    ) => {
+      let result: Array<string | undefined> | undefined;
 
-      if (Array.isArray(validation)) {
-        validation.forEach(v => {
-          if (typeof v !== 'string' && !isInputValidationConfig(v)) {
+      if (inputIsTouched) {
+        let validationToProcess: Array<string | InputValidationConfig>;
+
+        if (Array.isArray(validation)) {
+          validation.forEach(v => {
+            if (typeof v !== 'string' && !isInputValidationConfig(v)) {
+              throw new Error(
+                'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
+              );
+            }
+          });
+          validationToProcess = validation;
+        } else {
+          if (
+            typeof validation !== 'string' &&
+            !isInputValidationConfig(validation)
+          ) {
             throw new Error(
               'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
             );
-          }
-        });
-        validationToProcess = validation;
-      } else {
-        if (
-          typeof validation !== 'string' &&
-          !isInputValidationConfig(validation)
-        ) {
-          throw new Error(
-            'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
-          );
-        } else {
-          validationToProcess = [validation];
-        }
-      }
-
-      for (const v of validationToProcess) {
-        let validationConfig: InputValidationByKey | undefined = void 0;
-
-        // if this is a string the user has just requested a validation by name, such as `isRequired`. Otherwise, user
-        // has provided a validation config, so use that.
-
-        if (typeof v === 'string') {
-          validationConfig = { [v]: {} };
-        } else {
-          let key: string | undefined = void 0;
-          if (!v.key) {
-            key =
-              typeof v.validator === 'string'
-                ? v.validator // if the validator is a string, use that as a string
-                : (key = '' + Math.random()); // no key given, so generate one
           } else {
-            key = v.key;
+            validationToProcess = [validation];
           }
-          validationConfig = { [key]: v };
         }
 
-        const result = validate(inputValue, validationConfig, formData);
+        for (const v of validationToProcess) {
+          let validationConfig: InputValidationByKey | undefined = void 0;
 
-        setIsValid(!result);
-        if (result) {
-          const [unmetRuleKey, errorMessage] = result;
-          setHelperText(errorMessage);
-          updateError(name, unmetRuleKey, errorMessage);
-          break; // stop on the first error - we only show one at a time.
-        } else {
-          updateError(name);
+          // if this is a string the user has just requested a validation by name, such as `isRequired`. Otherwise, user
+          // has provided a validation config, so use that.
+
+          if (typeof v === 'string') {
+            validationConfig = { [v]: {} };
+          } else {
+            let key: string | undefined = void 0;
+            if (!v.key) {
+              key =
+                typeof v.validator === 'string'
+                  ? v.validator // if the validator is a string, use that as a string
+                  : (key = '' + Math.random()); // no key given, so generate one
+            } else {
+              key = v.key;
+            }
+            validationConfig = { [key]: v };
+          }
+
+          result = validate(inputValue, validationConfig, currentFormData);
+
+          setIsValid(!result);
+          if (result) {
+            // stop on the first error - we only show one at a time.
+            break;
+          }
         }
       }
-    },
-    [name, validation, updateError]
+
+      if (!!result) {
+        const [unmetRuleKey, errorMessage] = result;
+        setHelperText(errorMessage);
+
+        // show error for this input
+        updateError(name, unmetRuleKey, errorMessage);
+      } else {
+        // if form is not connected, and we have a submit handler, we call it every time validation passes. Otherwise
+        // we do nothing here - it will be invoked when the form is submitted.
+        if (!formRef.current && inputIsTouched && invokeSubmitHandler) {
+          if (submitHandler) {
+            submitHandler(currentFormData);
+          }
+        }
+
+        // clearing the error
+        updateError(name);
+      }
+    }
   );
 
   // watch for external parent data changes in self
@@ -184,39 +211,65 @@ export const useFormInput = ({
     if (value !== formValue) {
       setValue(formValue);
       setIsTouched(false);
+
+      handleValidationRef.current(formValue, formData, isCheckboxInput, false);
     }
   }, [formValue, value]);
-
-  // validate on value change
-  useEffect(() => {
-    if (isTouched) {
-      handleValidation(value);
-    } else {
-      // if not touched, make sure the input is valid. This is needed when this effect is triggered due to a
-      // programmatic update to the form data, otherwise inputs that should now be valid won't get updated.
-      updateError(name);
-    }
-  }, [value, isTouched, handleValidation]);
 
   // rewrite self and parent's value
   const handleChange = (e: FormEvent<HTMLInputElement>) => {
     const { type, checked } = e.currentTarget;
     const inputValue = e.currentTarget.value;
 
-    const newValue = type === 'checkbox' ? checked : inputValue;
+    const isCheckbox = type === 'checkbox';
+    const newValue = isCheckbox ? checked : inputValue;
 
-    setValue(inputValue);
-    setFormData({
+    const newFormData = {
       ...formData,
       [name]: newValue
-    });
+    };
+
+    setFormData(newFormData);
+
+    // must set the value before we set the sourced flag, or else checkboxes invoke their submit handlers twice.
+    // Not sure why - React should combine these into one useEffect invocation, but its not doing that. It's
+    // triggering once for the value change, and once for the isTouched change.
+    setValue(newValue);
+
+    let newIsTouched = isTouched;
+    if (isCheckbox) {
+      setIsCheckboxInput(true);
+      newIsTouched = true;
+      setIsTouched(newIsTouched);
+    }
+
+    handleValidationRef.current(
+      newValue,
+      newFormData,
+      isCheckbox,
+      newIsTouched
+    );
   };
 
-  const handleBlur = () => {
+  const handleValueAccepted = () => {
     if (!isTouched) {
       setIsTouched(true);
     }
-    handleValidation(value);
+
+    handleValidationRef.current(value, formData, true, true);
+  };
+
+  // we handle key presses and trigger validations if Enter was pressed
+  const handleKeyPress = (e: KeyboardEvent) => {
+    // We attempt to use keyCode first so that we work properly on IE 11 and lower. If that's
+    // not available, use the which property. Finally, if that's not available, use the newer key instead.
+    if (
+      (e as any['keyCode']) === 13 ||
+      (e as any['which']) === 13 ||
+      e.key === 'Enter'
+    ) {
+      handleValueAccepted();
+    }
   };
 
   const showError = !isValid && isTouched;
@@ -231,8 +284,9 @@ export const useFormInput = ({
     ...(showError && helperTextObj),
     ...(showError && invalidAttr),
     name,
-    onBlur: handleBlur,
+    onBlur: handleValueAccepted,
     onChange: handleChange,
+    onKeyPress: handleKeyPress,
     value
   };
 
@@ -245,12 +299,12 @@ export function setupForMaterialUI(): void {
 }
 
 export const useFormalizer = (
-  handleSubmit?: FormSubmitHandler,
+  submitHandler?: FormSubmitHandler,
   initialValues?: FormData,
   settings?: FormalizerSettingsType
 ) => {
   // some basic validations
-  if (!!handleSubmit && typeof handleSubmit !== 'function') {
+  if (!!submitHandler && typeof submitHandler !== 'function') {
     throw new Error(
       'Formalizer: the given form submit handler argument is of an invalid type. Must be a function.'
     );
@@ -325,9 +379,11 @@ export const useFormalizer = (
   const useInput = (name: string, validationConfigs: InputValidation[]) => {
     const inputAttr = useFormInput({
       formHandler,
+      formRef,
       helperTextAttr,
       invalidAttr,
       name,
+      submitHandler,
       updateError,
       validation: validationConfigs
     });
@@ -349,8 +405,8 @@ export const useFormalizer = (
     if (validateForm()) {
       try {
         // since the form is valid, delegate to the user-provided submit handler, if one was given to us
-        if (handleSubmit) {
-          handleSubmit(e, values);
+        if (submitHandler) {
+          submitHandler(values, e);
         } else {
           // by default, we don't submit the form. If the user wants the native submission behavior, they must
           // provide a submit handler.
@@ -603,5 +659,5 @@ export const validate = (
     }
   }
 
-  return isValid ? null : [unmetValidationKey, errorMessage];
+  return isValid ? undefined : [unmetValidationKey, errorMessage];
 };

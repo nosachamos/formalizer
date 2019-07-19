@@ -74,6 +74,31 @@ const EmailFormComponent = () => {
 
 Formalizer will only invoke your submit handler when the form is submitted with valid values, so you don't need to perform any checks at that point. Besides the original submit event, the complete form data is passed into the event handler as a convenience.
 
+#### If you save on every change
+
+Some applications use a pattern where forms don't even have a Save/Submit button. Instead, they automatically save the changes whenever use toggles a checkbox, or completes the edits on an input field. When this is the case, you don't even need a form element.
+
+Formalizer handles these scenarios automatically. Simply by not connecting a form to the given `formRef`, Formalizer understands you want to handle changes as they happen.
+
+```jsx
+import { useFormalizer } from 'formalizer';
+
+const EmailFormComponent = () => {
+  const submitHandler = (event, formData) => {
+    // invoked every time new data is accepted (checkbox toggled, select value picked, text value accepted, etc).
+  };
+
+  const { useInput, errors } = useFormalizer(submitHandler);
+
+  return (
+      <input {...useInput('email', 'isEmail')} />
+      <span>{errors['email']}</span>
+  );
+};
+```
+
+Since you have no connected form, the submit handler will be invoked every time a new input value is accepted either by toggling a checkbox, selecting a new value in a select component or pressing Enter or removing the focus off a text input.
+
 ## Setting form initial values
 
 A common use case you are likely to see is to initiate the form with certain values. The most common example is of editing an existing entity.

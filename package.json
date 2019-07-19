@@ -5,6 +5,7 @@
   "main": "build/index.js",
   "typings": "build/index.d.ts",
   "repository": "https://github.com/nosachamos/formalizer",
+  "homepage": "http://nosachamos.github.com/formalizer",
   "license": "MIT",
   "keywords": [
     "form validation",

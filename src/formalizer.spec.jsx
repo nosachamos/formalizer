@@ -1,12 +1,12 @@
-import React, { createRef, useRef } from 'react';
+import React from 'react';
 import { mount } from 'enzyme';
 import {
   DEFAULT_VALIDATION_ERROR_MESSAGE,
-  mustMatch,
-  useFormalizer,
-  GlobalValidators,
   FormalizerSettings,
-  setupForMaterialUI
+  GlobalValidators,
+  mustMatch,
+  setupForMaterialUI,
+  useFormalizer
 } from './formalizer';
 import { act } from '@testing-library/react';
 
@@ -15,7 +15,9 @@ class ErrorBoundary extends React.Component {
     // we silence these errors as they are expected by several tests and handled/asserted when needed
   }
 
-  render = () => this.props.children;
+  render() {
+    return this.props.children;
+  }
 }
 
 describe('Form Validation', () => {
@@ -105,6 +107,9 @@ describe('Form Validation', () => {
     if (formValidAfterSubmit) {
       if (submitHandlerCalled) {
         expect(submitHandler).toHaveBeenCalled(); // expect submit handler to be called if form is valid
+
+        // submit handler was called (exactly once) because we did not connect a form
+        expect(submitHandler.mock.calls.length).toBe(1);
       }
     } else {
       expect(submitHandler).not.toHaveBeenCalled(); // errors, so submit is aborted
@@ -246,6 +251,176 @@ describe('Form Validation', () => {
       );
     })
   );
+
+  it(`Error raised when input has invalid value and Enter is pressed`, () => {
+    const FormWrapper = () => {
+      formInfo = useFormalizer(submitHandler);
+
+      return buildTestForm(formInfo, 'isEmail', undefined);
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    act(() => {
+      // lets start by typing an incomplete email
+      typeIntoInput(
+        wrapper.find('[name="field1"]'),
+        'this.is.my.email@notcomplete'
+      );
+    });
+
+    // form is still valid since we did not remove focus or pressed Enter
+    expect(formInfo.isValid).toBe(true);
+
+    act(() => {
+      // then press Enter
+      wrapper.find('[name="field1"]').simulate('keypress', { key: 'Enter' });
+    });
+
+    // Form is no longer valid
+    expect(formInfo.isValid).toBe(false);
+
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      DEFAULT_VALIDATION_ERROR_MESSAGE,
+      undefined,
+      false
+    );
+  });
+
+  it(`If no form is connected, then the submitHandler is invoked on when data is accepted`, () => {
+    const FormWrapper = () => {
+      formInfo = useFormalizer(submitHandler, {
+        field1: '',
+        field2: '',
+        checkboxField: false
+      });
+
+      return (
+        <>
+          <input name="field1" {...formInfo.useInput('field1', 'isEmail')} />
+          <span id="field1Error">{formInfo.errors['field1']}</span>
+          <input name="field2" {...formInfo.useInput('field2')} />
+          <span id="field2Error">{formInfo.errors['field2']}</span>
+          <input type="checkbox" {...formInfo.useInput('checkboxField')} />
+        </>
+      );
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    const performBasicAssertions = () => {
+      // submit handler was called (exactly once) because we did not connect a form
+      expect(submitHandler.mock.calls.length).toBe(1);
+      // we got something as the first argument
+      expect(submitHandler.mock.calls[0][0]).not.toBeNull();
+      // second argument is empty
+      expect(submitHandler.mock.calls[0][1]).toBeUndefined();
+      // Form is valid
+      expect(formInfo.isValid).toBe(true);
+    };
+
+    expect(formInfo.isValid).toBe(true);
+
+    act(() => {
+      // lets start by typing an incomplete email
+      typeIntoInput(wrapper.find('[name="field1"]'), 'john-smithl@email.com');
+    });
+
+    act(() => {
+      // then press Enter
+      wrapper.find('[name="field1"]').simulate('keypress', { key: 'Enter' });
+    });
+
+    performBasicAssertions();
+
+    // the second argument is the form data, and it is correct
+    expect(submitHandler.mock.calls[0][0]).toEqual({
+      field1: 'john-smithl@email.com',
+      field2: '',
+      checkboxField: false
+    });
+    // reset the mock calls
+    submitHandler.mockClear();
+
+    act(() => {
+      // type on the field with no validations, and press Enter
+      typeIntoInput(wrapper.find('[name="field2"]'), 'test value');
+    });
+
+    act(() => {
+      // then press Enter
+      wrapper.find('[name="field2"]').simulate('keypress', { key: 'Enter' });
+    });
+
+    performBasicAssertions();
+
+    // the second argument is the form data, and it is correct
+    expect(submitHandler.mock.calls[0][0]).toEqual({
+      field1: 'john-smithl@email.com',
+      field2: 'test value',
+      checkboxField: false
+    });
+    // reset the mock calls
+    submitHandler.mockClear();
+
+    // toggling the checkbox also results in a call to the submit handler
+    act(() => {
+      wrapper.find('[type="checkbox"]').prop('onChange')({
+        currentTarget: { type: 'checkbox', checked: true }
+      });
+    });
+
+    performBasicAssertions();
+
+    // the second argument is the form data, and it is correct
+    expect(submitHandler.mock.calls[0][0]).toEqual({
+      field1: 'john-smithl@email.com',
+      field2: 'test value',
+      checkboxField: true
+    });
+    // reset the mock calls
+    submitHandler.mockClear();
+
+    // now type some invalid data and make sure the handle is not called
+    act(() => {
+      typeIntoInput(wrapper.find('[name="field1"]'), 'john@invalid');
+    });
+
+    act(() => {
+      // then press Enter
+      wrapper.find('[name="field1"]').simulate('keypress', { key: 'Enter' });
+    });
+
+    // handler was not invoked - data isn't valid
+    expect(submitHandler).not.toHaveBeenCalled();
+
+    // now type some invalid data and remove the focus from the field
+    act(() => {
+      typeIntoInput(wrapper.find('[name="field1"]'), 'john-smith@invalid');
+    });
+
+    act(() => {
+      // remove focus from the field
+      wrapper.find('[name="field1"]').simulate('blur');
+    });
+
+    // handler was not invoked - data isn't valid
+    expect(submitHandler).not.toHaveBeenCalled();
+
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      DEFAULT_VALIDATION_ERROR_MESSAGE,
+      undefined,
+      false
+    );
+  });
 
   it('Validators can be negated', () => {
     const FormWrapper = () => {
