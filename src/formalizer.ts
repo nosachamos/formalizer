@@ -281,8 +281,8 @@ export const useFormalizer = (
     formRef,
     formValues: values,
     isValid: mounted && !Object.values(errors).length,
+    performValidations,
     setValues: externalSetValues,
-    useInput,
-    performValidations
+    useInput
   };
 };
