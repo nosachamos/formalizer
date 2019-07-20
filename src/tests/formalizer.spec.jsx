@@ -6,15 +6,15 @@ import {
   GlobalValidators,
   setupForMaterialUI,
   useFormalizer
-} from './formalizer';
+} from '../formalizer';
 import { act } from '@testing-library/react';
-import { mustMatch } from './must-match.validator';
+import { mustMatch } from '../must-match.validator';
 import {
   buildTestForm,
   performAssertions,
   typeIntoInput
-} from './tests/test-utilities';
-import { ErrorBoundary } from './tests/error-boundary';
+} from './support-files/test-utilities';
+import { ErrorBoundary } from './support-files/error-boundary';
 
 describe('Form Validation', () => {
   const FIELD_REQUIRED_MESSAGE = 'This field is required.';

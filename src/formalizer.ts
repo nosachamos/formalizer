@@ -83,7 +83,8 @@ export interface FormInputParams {
 }
 
 export interface InputAttributes {
-  value: any;
+  value?: any;
+  checked?: boolean;
   name: string;
   onKeyPress: (e: KeyboardEvent) => void;
   onChange: (e: FormEvent<HTMLInputElement>) => any;

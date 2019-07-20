@@ -1,7 +1,7 @@
 import { GlobalValidators, useFormalizer } from '../formalizer';
-import { buildTestForm } from './test-utilities';
+import { buildTestForm } from './support-files/test-utilities';
 import { mount } from 'enzyme';
-import { ErrorBoundary } from './error-boundary';
+import { ErrorBoundary } from './support-files/error-boundary';
 import React from 'react';
 
 describe('Disconnected form Validation', () => {

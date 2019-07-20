@@ -196,16 +196,19 @@ export const useFormInput = ({
     helperTextObj[helperTextAttr] = helperText;
   }
 
-  const inputAttr = {
+  const inputAttr: InputAttributes = {
     ...(showError && helperTextObj),
     ...(showError && invalidAttr),
     name,
     onBlur: handleValueAccepted(true),
     onChange: handleChange,
     onKeyPress: handleKeyPress,
-    onRunValidations: handleValueAccepted(false),
-    value
+    onRunValidations: handleValueAccepted(false)
   };
+
+  typeof value === 'boolean'
+    ? (inputAttr.checked = value)
+    : (inputAttr.value = value);
 
   return inputAttr;
 };

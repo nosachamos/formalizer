@@ -5,7 +5,7 @@ import {
   buildDisconnectedForm,
   performAssertions,
   typeIntoInput
-} from './test-utilities';
+} from './support-files/test-utilities';
 import React from 'react';
 
 describe('Disconnected form validation', () => {
@@ -37,6 +37,34 @@ describe('Disconnected form validation', () => {
       wrapper.unmount();
       wrapper = undefined;
     }
+  });
+
+  it(`Checkbox comes out checked if its initial value was set to true.`, () => {
+    const FormWrapper = () => {
+      formInfo = useFormalizer(null, {
+        field1: '',
+        field2: '',
+        checkboxField: true
+      });
+
+      return buildDisconnectedForm(formInfo);
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    // checkbox starts checked
+    expect(wrapper.find('[type="checkbox"]').props().checked).toBe(true);
+
+    act(() => {
+      formInfo.performValidations();
+    });
+
+    expect(formInfo.isValid).toBe(true);
+
+    // checkbox is still checked
+    expect(wrapper.find('[type="checkbox"]').props().checked).toBe(true);
   });
 
   it(`If no form is connected, errors are still raised even if no submitHandler is given.`, () => {
