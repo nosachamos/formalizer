@@ -21,7 +21,7 @@ export const useFormInput = ({
 }: FormInputParams): InputAttributes => {
   const [formData, setFormData] = formHandler;
   const formValue = formData[name];
-  const [isCheckboxInput, setIsCheckboxInput] = useState(false);
+  const [inputType, setInputType] = useState('text');
   const [value, setValue] = useState<string | boolean>(formValue);
   const [isValid, setIsValid] = useState(true);
   const [isTouched, setIsTouched] = useState(false);
@@ -115,13 +115,21 @@ export const useFormInput = ({
     }
   );
 
+  const isInputToggleable = (type: string) =>
+    type === 'checkbox' || type === 'radio';
+
   // watch for external parent data changes in self
   useEffect(() => {
     if (value !== formValue) {
       setValue(formValue);
       setIsTouched(false);
 
-      handleValidationRef.current(formValue, formData, isCheckboxInput, false);
+      handleValidationRef.current(
+        formValue,
+        formData,
+        isInputToggleable(inputType),
+        false
+      );
     }
   }, [formValue, value]);
 
@@ -130,8 +138,8 @@ export const useFormInput = ({
     const { type, checked } = e.currentTarget;
     const inputValue = e.currentTarget.value;
 
-    const isCheckbox = type === 'checkbox';
-    const newValue = isCheckbox ? checked : inputValue;
+    setInputType(type);
+    const newValue = type === 'checkbox' ? checked : inputValue;
 
     const newFormData = {
       ...formData,
@@ -146,8 +154,8 @@ export const useFormInput = ({
     setValue(newValue);
 
     let newIsTouched = isTouched;
-    if (isCheckbox) {
-      setIsCheckboxInput(true);
+    if (isInputToggleable(type)) {
+      setInputType(type);
       newIsTouched = true;
       setIsTouched(newIsTouched);
     }
@@ -155,7 +163,7 @@ export const useFormInput = ({
     handleValidationRef.current(
       newValue,
       newFormData,
-      isCheckbox,
+      isInputToggleable(type),
       newIsTouched
     );
   };
