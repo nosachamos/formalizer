@@ -9,16 +9,12 @@ import {
 } from './formalizer';
 import { act } from '@testing-library/react';
 import { mustMatch } from './must-match.validator';
-
-class ErrorBoundary extends React.Component {
-  componentDidCatch(error, info) {
-    // we silence these errors as they are expected by several tests and handled/asserted when needed
-  }
-
-  render() {
-    return this.props.children;
-  }
-}
+import {
+  buildTestForm,
+  performAssertions,
+  typeIntoInput
+} from './tests/test-utilities';
+import { ErrorBoundary } from './tests/error-boundary';
 
 describe('Form Validation', () => {
   const FIELD_REQUIRED_MESSAGE = 'This field is required.';
@@ -63,18 +59,6 @@ describe('Form Validation', () => {
     }
   ];
 
-  const mustContainLetterZWithOption = [
-    {
-      validator: (value, options) => {
-        if (options.ignoreCase) {
-          return !!value && value.toLowerCase().indexOf('z') > -1;
-        } else {
-          return !!value && value.indexOf('z') > -1;
-        }
-      }
-    }
-  ];
-
   let wrapper;
   let submitHandler;
   let formInfo;
@@ -92,69 +76,6 @@ describe('Form Validation', () => {
       wrapper = undefined;
     }
   });
-
-  function performAssertions(
-    wrapper,
-    formInfo,
-    submitHandler,
-    field1ErrorMessage,
-    field2ErrorMessage,
-    formValidAfterSubmit,
-    submitHandlerCalled = true
-  ) {
-    expect(formInfo.isValid).toBe(formValidAfterSubmit);
-
-    if (formValidAfterSubmit) {
-      if (submitHandlerCalled) {
-        expect(submitHandler).toHaveBeenCalled(); // expect submit handler to be called if form is valid
-
-        // submit handler was called (exactly once) because we did not connect a form
-        expect(submitHandler.mock.calls.length).toBe(1);
-      }
-    } else {
-      expect(submitHandler).not.toHaveBeenCalled(); // errors, so submit is aborted
-    }
-
-    expect(formInfo.errors.field1).toEqual(field1ErrorMessage);
-    expect(formInfo.errors.field2).toEqual(field2ErrorMessage);
-
-    expect(wrapper.find('#field1Error').text()).toEqual(
-      field1ErrorMessage ? field1ErrorMessage : ''
-    );
-    expect(wrapper.find('#field2Error').text()).toEqual(
-      field2ErrorMessage ? field2ErrorMessage : ''
-    );
-
-    submitHandler.mockClear(); // reset the calls count
-  }
-
-  const buildTestForm = (formInfo, field1Validation, field2Validation) => (
-    <form ref={formInfo.formRef}>
-      <input name="field1" {...formInfo.useInput('field1', field1Validation)} />
-      <span id="field1Error">{formInfo.errors['field1']}</span>
-      <input name="field2" {...formInfo.useInput('field2', field2Validation)} />
-      <span id="field2Error">{formInfo.errors['field2']}</span>
-
-      <button
-        data-test="form-submit-button"
-        {...(formInfo.isValid ? {} : { disabled: true })}
-        type="submit"
-      >
-        Submit
-      </button>
-      <button
-        data-test="force-validation-button"
-        onClick={formInfo.validateForm}
-      >
-        Force form validation
-      </button>
-    </form>
-  );
-
-  const typeIntoInput = (input, value) => {
-    input.instance().value = value;
-    input.simulate('change', { target: { value: value } });
-  };
 
   // TESTS START HERE
 
@@ -292,125 +213,85 @@ describe('Form Validation', () => {
     );
   });
 
-  it(`If no form is connected, then the submitHandler is invoked on when data is accepted`, () => {
+  it(`No validations run when keys other than Enter are pressed`, () => {
     const FormWrapper = () => {
-      formInfo = useFormalizer(submitHandler, {
-        field1: '',
-        field2: '',
-        checkboxField: false
-      });
+      formInfo = useFormalizer(submitHandler);
 
-      return (
-        <>
-          <input name="field1" {...formInfo.useInput('field1', 'isEmail')} />
-          <span id="field1Error">{formInfo.errors['field1']}</span>
-          <input name="field2" {...formInfo.useInput('field2')} />
-          <span id="field2Error">{formInfo.errors['field2']}</span>
-          <input type="checkbox" {...formInfo.useInput('checkboxField')} />
-        </>
-      );
+      return buildTestForm(formInfo, 'isEmail', undefined);
     };
 
     wrapper = mount(<FormWrapper />);
-
-    const performBasicAssertions = () => {
-      // submit handler was called (exactly once) because we did not connect a form
-      expect(submitHandler.mock.calls.length).toBe(1);
-      // we got something as the first argument
-      expect(submitHandler.mock.calls[0][0]).not.toBeNull();
-      // second argument is empty
-      expect(submitHandler.mock.calls[0][1]).toBeUndefined();
-      // Form is valid
-      expect(formInfo.isValid).toBe(true);
-    };
 
     expect(formInfo.isValid).toBe(true);
 
     act(() => {
       // lets start by typing an incomplete email
-      typeIntoInput(wrapper.find('[name="field1"]'), 'john-smithl@email.com');
+      typeIntoInput(
+        wrapper.find('[name="field1"]'),
+        'this.is.my.email@notcomplete'
+      );
     });
+
+    // form is still valid since we did not remove focus or pressed Enter
+    expect(formInfo.isValid).toBe(true);
+
+    act(() =>
+      wrapper.find('[name="field1"]').simulate('keypress', { key: 'a' })
+    );
+    act(() =>
+      wrapper.find('[name="field1"]').simulate('keypress', { key: '1' })
+    );
+    act(() =>
+      wrapper.find('[name="field1"]').simulate('keypress', { key: '@' })
+    );
+    act(() =>
+      wrapper.find('[name="field1"]').simulate('keypress', { key: 'Esc' })
+    );
+
+    // form is still valid since we did not remove focus or pressed Enter
+    expect(formInfo.isValid).toBe(true);
+
+    // no errors in the form either
+    performAssertions(
+      wrapper,
+      formInfo,
+      submitHandler,
+      undefined,
+      undefined,
+      true,
+      false
+    );
+  });
+
+  it(`Error raised when input has invalid value and performValidations is invoked explicitly`, () => {
+    const FormWrapper = () => {
+      formInfo = useFormalizer(submitHandler);
+
+      return buildTestForm(formInfo, 'isEmail', undefined);
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
 
     act(() => {
-      // then press Enter
-      wrapper.find('[name="field1"]').simulate('keypress', { key: 'Enter' });
+      // lets start by typing an incomplete email
+      typeIntoInput(
+        wrapper.find('[name="field1"]'),
+        'this.is.my.email@notcomplete'
+      );
     });
 
-    performBasicAssertions();
-
-    // the second argument is the form data, and it is correct
-    expect(submitHandler.mock.calls[0][0]).toEqual({
-      field1: 'john-smithl@email.com',
-      field2: '',
-      checkboxField: false
-    });
-    // reset the mock calls
-    submitHandler.mockClear();
+    // form is still valid since we did not remove focus or pressed Enter
+    expect(formInfo.isValid).toBe(true);
 
     act(() => {
-      // type on the field with no validations, and press Enter
-      typeIntoInput(wrapper.find('[name="field2"]'), 'test value');
+      // programmatically invoke the performValidations function
+      formInfo.performValidations();
     });
 
-    act(() => {
-      // then press Enter
-      wrapper.find('[name="field2"]').simulate('keypress', { key: 'Enter' });
-    });
-
-    performBasicAssertions();
-
-    // the second argument is the form data, and it is correct
-    expect(submitHandler.mock.calls[0][0]).toEqual({
-      field1: 'john-smithl@email.com',
-      field2: 'test value',
-      checkboxField: false
-    });
-    // reset the mock calls
-    submitHandler.mockClear();
-
-    // toggling the checkbox also results in a call to the submit handler
-    act(() => {
-      wrapper.find('[type="checkbox"]').prop('onChange')({
-        currentTarget: { type: 'checkbox', checked: true }
-      });
-    });
-
-    performBasicAssertions();
-
-    // the second argument is the form data, and it is correct
-    expect(submitHandler.mock.calls[0][0]).toEqual({
-      field1: 'john-smithl@email.com',
-      field2: 'test value',
-      checkboxField: true
-    });
-    // reset the mock calls
-    submitHandler.mockClear();
-
-    // now type some invalid data and make sure the handle is not called
-    act(() => {
-      typeIntoInput(wrapper.find('[name="field1"]'), 'john@invalid');
-    });
-
-    act(() => {
-      // then press Enter
-      wrapper.find('[name="field1"]').simulate('keypress', { key: 'Enter' });
-    });
-
-    // handler was not invoked - data isn't valid
-    expect(submitHandler).not.toHaveBeenCalled();
-
-    // now type some invalid data and remove the focus from the field
-    act(() => {
-      typeIntoInput(wrapper.find('[name="field1"]'), 'john-smith@invalid');
-    });
-
-    act(() => {
-      // remove focus from the field
-      wrapper.find('[name="field1"]').simulate('blur');
-    });
-
-    // handler was not invoked - data isn't valid
-    expect(submitHandler).not.toHaveBeenCalled();
+    // Form is no longer valid
+    expect(formInfo.isValid).toBe(false);
 
     performAssertions(
       wrapper,
@@ -518,7 +399,7 @@ describe('Form Validation', () => {
       value: null
     }
   ].forEach(t =>
-    it(`Can ${t.name} initial form value.`, () => {
+    it(`Can handle ${t.name} initial form value.`, () => {
       const FormWrapper = () => {
         formInfo = useFormalizer(submitHandler, t.value, null);
 
@@ -546,39 +427,6 @@ describe('Form Validation', () => {
 
   [
     {
-      name: 'numeric',
-      value: 123
-    },
-    {
-      name: 'boolean',
-      value: true
-    },
-    {
-      name: 'array',
-      value: []
-    },
-    {
-      name: 'function',
-      value: () => {}
-    },
-    {
-      name: 'string',
-      value: 'invalid'
-    }
-  ].forEach(t =>
-    it(`Error raised when invalid initial form values of ${t.name} type is used.`, () => {
-      const callMount = () => useFormalizer(submitHandler, t.value, null);
-
-      expect(callMount).toThrowError(
-        new Error(
-          'Formalizer: the given initial values argument is of an invalid type. Must be an object.'
-        )
-      );
-    })
-  );
-
-  [
-    {
       name: 'undefined',
       value: undefined
     },
@@ -587,7 +435,7 @@ describe('Form Validation', () => {
       value: null
     }
   ].forEach(t =>
-    it(`Can ${t.name} form submission handler.`, () => {
+    it(`Can handle ${t.name} form submission handler.`, () => {
       const FormWrapper = () => {
         formInfo = useFormalizer(t.value, {}, null);
 
@@ -613,40 +461,7 @@ describe('Form Validation', () => {
     })
   );
 
-  [
-    {
-      name: 'numeric',
-      value: 123
-    },
-    {
-      name: 'boolean',
-      value: true
-    },
-    {
-      name: 'object',
-      value: {}
-    },
-    {
-      name: 'array',
-      value: []
-    },
-    {
-      name: 'string',
-      value: 'invalid'
-    }
-  ].forEach(t =>
-    it(`Error raised when invalid form submit handler of ${t.name} type is used.`, () => {
-      const callMount = () => useFormalizer(t.value, {});
-
-      expect(callMount).toThrowError(
-        new Error(
-          'Formalizer: the given form submit handler argument is of an invalid type. Must be a function.'
-        )
-      );
-    })
-  );
-
-  it('Can handle no fields to validate given: form is always valid', () => {
+  it('Can handle form with no inputs: form is always valid', () => {
     const FormWrapper = () => {
       formInfo = useFormalizer(submitHandler, {}, null);
 
@@ -661,7 +476,7 @@ describe('Form Validation', () => {
           </button>
           <button
             data-test="force-validation-button"
-            onClick={formInfo.validateForm}
+            onClick={formInfo.performValidations}
           >
             Force form validation
           </button>
@@ -1161,52 +976,6 @@ describe('Form Validation', () => {
     }
   });
 
-  [
-    {
-      name: 'object',
-      validator: {} // invalid type
-    },
-    {
-      name: 'boolean',
-      validator: false // invalid type
-    },
-    {
-      name: 'undefined',
-      validator: undefined // invalid type
-    }
-  ].forEach(invalidValidatorDef =>
-    it(`Correct error is thrown when the given global validator of invalid type (${invalidValidatorDef.name})`, () => {
-      const originalError = console.error;
-      console.error = jest.fn(); // prevents React 16 error boundary warning
-
-      GlobalValidators.isEmail = invalidValidatorDef;
-
-      const FormWrapper = () => {
-        formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
-        return buildTestForm(formInfo, ['isEmail'], []);
-      };
-
-      wrapper = mount(
-        <ErrorBoundary>
-          <FormWrapper />
-        </ErrorBoundary>
-      );
-
-      const callMount = () =>
-        wrapper.find('[data-test="force-validation-button"]').simulate('click');
-
-      expect(callMount).toThrowError(
-        new Error(
-          'Formalizer: the given validator must be either a string or a function.'
-        )
-      );
-
-      console.error = originalError;
-
-      delete GlobalValidators.isEmail;
-    })
-  );
-
   it('Custom global validation using a dynamic error message can be provided', () => {
     GlobalValidators.dynamicErrorMsgValidator = {
       validator: () => false,
@@ -1332,57 +1101,6 @@ describe('Form Validation', () => {
       false
     );
   });
-
-  [
-    {
-      name: 'numeric',
-      value: 123
-    },
-    {
-      name: 'boolean',
-      value: true
-    },
-    {
-      name: 'array',
-      value: []
-    },
-    {
-      name: 'array',
-      value: {}
-    }
-  ].forEach(v =>
-    it(`Handle an invalid error message of ${v.name} type correctly`, () => {
-      const originalError = console.error;
-      console.error = jest.fn(); // prevents React 16 error boundary warning
-
-      const customValidator = {
-        validator: () => false,
-        errorMessage: v.value
-      };
-
-      const FormWrapper = () => {
-        formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
-        return buildTestForm(formInfo, [customValidator], []);
-      };
-
-      wrapper = mount(
-        <ErrorBoundary>
-          <FormWrapper />
-        </ErrorBoundary>
-      );
-
-      const callMount = () =>
-        wrapper.find('[data-test="force-validation-button"]').simulate('click');
-
-      expect(callMount).toThrowError(
-        new Error(
-          `Formalizer: a validator's errorMessage field must be either a string or a function that returns a string.`
-        )
-      );
-
-      console.error = originalError;
-    })
-  );
 
   it("Custom global validation using a string validator (referring to one of validator's functions) can be provided", () => {
     GlobalValidators.mustBeEmail = {
@@ -2000,172 +1718,6 @@ describe('Form Validation', () => {
       )
     );
   });
-
-  [
-    {
-      validator: [{ invalidValidatorFunc: { validator: false } }],
-      type: 'boolean'
-    },
-    {
-      validator: [{ invalidValidatorFunc: { validator: 123 } }],
-      type: 'number'
-    }
-  ].forEach(v =>
-    it(`Handle validator of invalid type "${v.type}"`, () => {
-      const FormWrapper = () => {
-        formInfo = useFormalizer(
-          submitHandler,
-          { field1: '', field2: 'testValue' },
-          {}
-        );
-        return buildTestForm(formInfo, v.validator, []);
-      };
-
-      wrapper = mount(
-        <ErrorBoundary>
-          <FormWrapper />
-        </ErrorBoundary>
-      );
-
-      // still valid because we didn't fin the validation
-      expect(formInfo.isValid).toBe(true);
-
-      const callMount = () =>
-        wrapper.find('[data-test="force-validation-button"]').simulate('click');
-
-      expect(callMount).toThrowError(
-        new Error(
-          `Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.`
-        )
-      );
-    })
-  );
-
-  [
-    {
-      validator: [{ validator: [] }],
-      type: 'validator of array type',
-      error: 'Formalizer: validators must be of string or object type.'
-    },
-    {
-      validator: [{ validator: 123 }],
-      type: 'validator of 123 type',
-      error: 'Formalizer: validators must be of string or object type.'
-    },
-    {
-      validator: [{ validator: false }],
-      type: 'validator of boolean type',
-      error: 'Formalizer: validators must be of string or object type.'
-    },
-    {
-      validator: [{ validator: null }],
-      type: 'validator of null type',
-      error: 'Formalizer: validators must be of string or object type.'
-    }
-  ].forEach(v =>
-    it(`Handle global validator of invalid ${v.type}`, () => {
-      GlobalValidators.invalidValidator = v.validator;
-
-      const FormWrapper = () => {
-        formInfo = useFormalizer(
-          submitHandler,
-          { field1: '', field2: 'testValue' },
-          {}
-        );
-        return buildTestForm(formInfo, ['invalidValidator'], []);
-      };
-
-      wrapper = mount(
-        <ErrorBoundary>
-          <FormWrapper />
-        </ErrorBoundary>
-      );
-
-      // still valid because we didn't fin the validation
-      expect(formInfo.isValid).toBe(true);
-
-      const callMount = () =>
-        wrapper.find('[data-test="force-validation-button"]').simulate('click');
-
-      expect(callMount).toThrowError(new Error(v.error));
-    })
-  );
-
-  [
-    {
-      validator: false,
-      type: 'bare boolean type',
-      error:
-        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
-    },
-    {
-      validator: 123,
-      type: 'bare numeric type',
-      error:
-        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
-    },
-    {
-      validator: null,
-      type: 'bare null type',
-      error:
-        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
-    },
-    {
-      validator: [false],
-      type: 'boolean type',
-      error:
-        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
-    },
-    {
-      validator: [123],
-      type: 'numeric type',
-      error:
-        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
-    },
-    {
-      validator: [undefined],
-      type: 'undefined type',
-      error:
-        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
-    },
-    {
-      validator: [null],
-      type: 'null type',
-      error:
-        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
-    },
-    {
-      validator: [[]],
-      type: 'array validator value',
-      error:
-        'Formalizer: the validator value passed into useInput must be a single string, a custom validator object or an array of these.'
-    }
-  ].forEach(v =>
-    it(`Handle custom validator of invalid ${v.type}`, () => {
-      const FormWrapper = () => {
-        formInfo = useFormalizer(
-          submitHandler,
-          { field1: '', field2: 'testValue' },
-          {}
-        );
-        return buildTestForm(formInfo, v.validator, []);
-      };
-
-      wrapper = mount(
-        <ErrorBoundary>
-          <FormWrapper />
-        </ErrorBoundary>
-      );
-
-      // still valid because we didn't fin the validation
-      expect(formInfo.isValid).toBe(true);
-
-      const callMount = () =>
-        wrapper.find('[data-test="force-validation-button"]').simulate('click');
-
-      expect(callMount).toThrowError(new Error(v.error));
-    })
-  );
 
   it(`The setupForMaterialUI() function configures settings correctly`, () => {
     const originalInvalidAttr = FormalizerSettings.invalidAttr;

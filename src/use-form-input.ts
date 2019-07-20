@@ -33,7 +33,7 @@ export const useFormInput = ({
       currentFormData: FormData,
       invokeSubmitHandler: boolean,
       inputIsTouched: boolean
-    ) => {
+    ): boolean => {
       let result: Array<string | undefined> | undefined;
 
       if (inputIsTouched) {
@@ -100,7 +100,7 @@ export const useFormInput = ({
         updateError(name, unmetRuleKey, errorMessage);
       } else {
         // if form is not connected, and we have a submit handler, we call it every time validation passes. Otherwise
-        // we do nothing here - it will be invoked when the form is submitted.
+        // we do nothing here.
         if (!formRef.current && inputIsTouched && invokeSubmitHandler) {
           if (submitHandler) {
             submitHandler(currentFormData);
@@ -110,6 +110,8 @@ export const useFormInput = ({
         // clearing the error
         updateError(name);
       }
+
+      return !result;
     }
   );
 
@@ -158,12 +160,19 @@ export const useFormInput = ({
     );
   };
 
-  const handleValueAccepted = () => {
+  const handleValueAccepted = (
+    mayInvokeSubmitHandler: boolean
+  ) => (): boolean => {
     if (!isTouched) {
       setIsTouched(true);
     }
 
-    handleValidationRef.current(value, formData, true, true);
+    return handleValidationRef.current(
+      value,
+      formData,
+      mayInvokeSubmitHandler,
+      true
+    );
   };
 
   // we handle key presses and trigger validations if Enter was pressed
@@ -175,7 +184,7 @@ export const useFormInput = ({
       (e as any['which']) === 13 ||
       e.key === 'Enter'
     ) {
-      handleValueAccepted();
+      handleValueAccepted(true)();
     }
   };
 
@@ -191,9 +200,10 @@ export const useFormInput = ({
     ...(showError && helperTextObj),
     ...(showError && invalidAttr),
     name,
-    onBlur: handleValueAccepted,
+    onBlur: handleValueAccepted(true),
     onChange: handleChange,
     onKeyPress: handleKeyPress,
+    onRunValidations: handleValueAccepted(false),
     value
   };
 

@@ -88,6 +88,7 @@ export interface InputAttributes {
   onKeyPress: (e: KeyboardEvent) => void;
   onChange: (e: FormEvent<HTMLInputElement>) => any;
   onBlur: () => any;
+  onRunValidations: () => boolean;
   helperTextObj?: { [key: string]: string };
   invalidAttr?: object;
 }
@@ -131,6 +132,20 @@ export const useFormalizer = (
   const errorHandler = useState<{ [key: string]: string }>({});
   const [mounted, setMounted] = useState(false);
 
+  /**
+   * We keep a map of forms being validated so that we can have multiple forms being validated in the same page.
+   */
+  const inputsMap = useRef<{
+    [key: string]: InputAttributes;
+  }>({});
+
+  /**
+   * Map of form inputs by input name. This is used when we have a connected form.
+   */
+  const formInputsMap = useRef<{
+    [key: string]: { [key: string]: InputAttributes };
+  }>({});
+
   const [values, setValues] = formHandler;
   const [errors, setErrors] = errorHandler;
 
@@ -145,9 +160,7 @@ export const useFormalizer = (
     if (!unmetRule) {
       delete errors[name];
     } else {
-      if (errorMessage !== undefined) {
-        errors[name] = errorMessage;
-      }
+      errors[name] = errorMessage as string;
     }
     setErrors(errors);
   };
@@ -160,20 +173,26 @@ export const useFormalizer = (
     }
   }
 
-  const formInputsAttrs = useRef<{
-    [key: string]: { [key: string]: InputAttributes };
-  }>({});
-
-  const validateForm = () => {
+  const performValidations = () => {
     if (formRef.current) {
       const formInputsByName =
-        formInputsAttrs.current[formRef.current.formValidationIdAttr];
+        formInputsMap.current[formRef.current.formValidationIdAttr];
 
+      // trigger validation on each of the form's inputs
       if (formInputsByName) {
-        // trigger validation on each of the form's inputs
         Object.keys(formInputsByName).forEach(inputName =>
           formInputsByName[inputName].onBlur()
         );
+      }
+    } else {
+      // trigger validation on each of the form's inputs
+      const allInputsValid = Object.keys(inputsMap.current).every(inputName =>
+        inputsMap.current[inputName].onRunValidations()
+      );
+
+      // now we need to trigger the submit handler if there are no errors
+      if (allInputsValid && submitHandler) {
+        submitHandler(values);
       }
     }
 
@@ -193,12 +212,16 @@ export const useFormalizer = (
     });
 
     if (formRef.current) {
-      if (!formInputsAttrs.current[formRef.current.formValidationIdAttr]) {
-        formInputsAttrs.current[formRef.current.formValidationIdAttr] = {};
+      // connected form - group inputs by form
+      if (!formInputsMap.current[formRef.current.formValidationIdAttr]) {
+        formInputsMap.current[formRef.current.formValidationIdAttr] = {};
       }
-      formInputsAttrs.current[formRef.current.formValidationIdAttr][
+      formInputsMap.current[formRef.current.formValidationIdAttr][
         inputAttr.name
       ] = inputAttr;
+    } else {
+      // disconnected form - all inputs on the same group
+      inputsMap.current[inputAttr.name] = inputAttr;
     }
 
     return inputAttr;
@@ -206,7 +229,7 @@ export const useFormalizer = (
 
   const formSubmitHandler = (e: Event) => {
     // first validate the form
-    if (validateForm()) {
+    if (performValidations()) {
       try {
         // since the form is valid, delegate to the user-provided submit handler, if one was given to us
         if (submitHandler) {
@@ -250,7 +273,7 @@ export const useFormalizer = (
   // we proxy this set state call so that we can trigger a form validation once a new set of values has been set on the form.
   const externalSetValues = (formValues: FormData) => {
     setValues(formValues);
-    validateForm();
+    performValidations();
   };
 
   return {
@@ -260,6 +283,6 @@ export const useFormalizer = (
     isValid: mounted && !Object.values(errors).length,
     setValues: externalSetValues,
     useInput,
-    validateForm
+    performValidations
   };
 };

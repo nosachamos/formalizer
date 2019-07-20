@@ -29,7 +29,7 @@ import { useFormalizer } from 'formalizer';
             useInput,
             errors,
             isValid,
-            validateForm,
+            performValidations,
             formValues,
             setValues
           } = useFormalizer();
@@ -37,15 +37,15 @@ import { useFormalizer } from 'formalizer';
 
 Let's examine each of these items returned:
 
-| Property       | Type     | Description                                                                                                                                                                                                                   |
-| -------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `formRef`      | ref      | A form ref that must be connected to the form being validated.                                                                                                                                                                |
-| `useInput`     | hook     | This hook is used to setup validation in each of the form inputs.                                                                                                                                                             |
-| `errors`       | object   | An object containing the errors currently in the form. The keys indicate the fields which have errors, and the values are the error messages to be displayed to the user. When the form is valid an empty object is returned. |
-| `isValid`      | boolean  | A convenience flag indicating whether the form has errors or not. Useful for disabling submit/action buttons until errors have been resolved.                                                                                 |
-| `validateForm` | function | Rarely needed, this function can be used to programmatically trigger a form validation and, if no errors are found, a form submission.                                                                                        |
-| `formValues`   | object   | This object contains the set of values currently in the form. Not commonly used as this data is also passed as an argument into form submission handlers.                                                                     |
-| `setValues`    | function | Although these aren't common these days, certain use cases such as programmatically resetting a form require programmatically altering the form values. You can use this function to accomplish that.                         |
+| Property             | Type     | Description                                                                                                                                                                                                                   |
+| -------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `formRef`            | ref      | A form ref that must be connected to the form being validated.                                                                                                                                                                |
+| `useInput`           | hook     | This hook is used to setup validation in each of the form inputs.                                                                                                                                                             |
+| `errors`             | object   | An object containing the errors currently in the form. The keys indicate the fields which have errors, and the values are the error messages to be displayed to the user. When the form is valid an empty object is returned. |
+| `isValid`            | boolean  | A convenience flag indicating whether the form has errors or not. Useful for disabling submit/action buttons until errors have been resolved.                                                                                 |
+| `performValidations` | function | Rarely needed, this function can be used to programmatically trigger a form validation and, if no errors are found, a form submission.                                                                                        |
+| `formValues`         | object   | This object contains the set of values currently in the form. Not commonly used as this data is also passed as an argument into form submission handlers.                                                                     |
+| `setValues`          | function | Although these aren't common these days, certain use cases such as programmatically resetting a form require programmatically altering the form values. You can use this function to accomplish that.                         |
 
 ## Handling form submissions
 
