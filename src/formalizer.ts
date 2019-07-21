@@ -7,7 +7,7 @@ import {
   useRef,
   useState
 } from 'react';
-import { useFormInput } from './use-form-input';
+import { FORMALIZER_ID_DATA_ATTRIBUTE, useFormInput } from './use-form-input';
 
 interface FormalizerSettingsType {
   invalidAttr?: { [key: string]: any };
@@ -77,6 +77,8 @@ export interface FormInputParams {
   formRef: MutableRefObject<HTMLFormElement | null>;
   updateError: ValidationErrorUpdater;
   invalidAttr?: object;
+  inputType: string;
+  inputValueAttributeVal?: string;
   submitHandler?: FormSubmitHandler;
   validation: InputValidation[];
   helperTextAttr?: string;
@@ -96,6 +98,8 @@ export interface InputAttributes {
   onBlur: () => any;
   helperTextObj?: { [key: string]: string };
   invalidAttr?: object;
+  type: string;
+  [FORMALIZER_ID_DATA_ATTRIBUTE]: string;
 }
 
 export interface Options {
@@ -176,21 +180,22 @@ export const useFormalizer = (
 
   const performValidations = () => {
     if (formRef.current) {
-      const formInputsByName =
+      const formInputsByUniqueId =
         formInputsMap.current[formRef.current.formValidationIdAttr];
 
       // trigger validation on each of the form's inputs
-      if (formInputsByName) {
-        Object.keys(formInputsByName).forEach(inputName =>
-          formInputsByName[inputName].inputAttr.onBlur()
+      if (formInputsByUniqueId) {
+        Object.keys(formInputsByUniqueId).forEach(inputUniqueId =>
+          formInputsByUniqueId[inputUniqueId].inputAttr.onBlur()
         );
       }
     } else {
-      const formInputsByName = formInputsMap.current[DISCONNECTED_FORM_INPUTS];
+      const formInputsByUniqueId =
+        formInputsMap.current[DISCONNECTED_FORM_INPUTS];
 
       // trigger validation on each of the form's inputs
-      const allInputsValid = Object.keys(formInputsByName).every(inputName =>
-        formInputsByName[inputName].runValidations()
+      const allInputsValid = Object.keys(formInputsByUniqueId).every(
+        inputUniqueId => formInputsByUniqueId[inputUniqueId].runValidations()
       );
 
       // now we need to trigger the submit handler if there are no errors
@@ -202,16 +207,23 @@ export const useFormalizer = (
     return mounted && !Object.values(errors).length; // no errors found
   };
 
-  const useInput = (name: string, validationConfigs: InputValidation[]) => {
+  const useInputHandler = (
+    name: string,
+    inputValueAttributeVal: string | undefined,
+    validationConfigs: InputValidation[] = [],
+    inputType: string
+  ) => {
     const formInputData = useFormInput({
       formHandler,
       formRef,
       helperTextAttr,
+      inputType,
       invalidAttr,
       name,
       submitHandler,
       updateError,
-      validation: validationConfigs
+      validation: validationConfigs,
+      inputValueAttributeVal
     });
 
     if (formRef.current) {
@@ -220,7 +232,7 @@ export const useFormalizer = (
         formInputsMap.current[formRef.current.formValidationIdAttr] = {};
       }
       formInputsMap.current[formRef.current.formValidationIdAttr][
-        formInputData.inputAttr.name
+        formInputData.inputAttr[FORMALIZER_ID_DATA_ATTRIBUTE]
       ] = formInputData;
     } else {
       // disconnected form - all inputs on the same group
@@ -228,12 +240,26 @@ export const useFormalizer = (
         formInputsMap.current[DISCONNECTED_FORM_INPUTS] = {};
       }
       formInputsMap.current[DISCONNECTED_FORM_INPUTS][
-        formInputData.inputAttr.name
+        formInputData.inputAttr[FORMALIZER_ID_DATA_ATTRIBUTE]
       ] = formInputData;
     }
 
     return formInputData.inputAttr;
   };
+
+  const useInput = (name: string, validationConfigs?: InputValidation[]) =>
+    useInputHandler(name, undefined, validationConfigs, 'text');
+
+  const useCheckboxInput = (
+    name: string,
+    validationConfigs?: InputValidation[]
+  ) => useInputHandler(name, undefined, validationConfigs, 'checkbox');
+
+  const useRadioInput = (
+    name: string,
+    value: string,
+    validationConfigs?: InputValidation[]
+  ) => useInputHandler(name, value, validationConfigs, 'radio');
 
   const formSubmitHandler = (e: Event) => {
     // first validate the form
@@ -291,6 +317,8 @@ export const useFormalizer = (
     isValid: mounted && !Object.values(errors).length,
     performValidations,
     setValues: externalSetValues,
-    useInput
+    useInput,
+    useCheckboxInput,
+    useRadioInput
   };
 };

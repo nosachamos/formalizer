@@ -10,6 +10,8 @@ import {
 } from './formalizer';
 import { validate } from './validate';
 
+export const FORMALIZER_ID_DATA_ATTRIBUTE = 'data-formalizer-id';
+
 export const useFormInput = ({
   name,
   formHandler,
@@ -17,16 +19,27 @@ export const useFormInput = ({
   validation = [],
   updateError,
   invalidAttr = {},
+  inputType = 'text',
   submitHandler,
-  helperTextAttr
+  helperTextAttr,
+  inputValueAttributeVal
 }: FormInputParams): FormInputData => {
   const [formData, setFormData] = formHandler;
   const formValue = formData[name];
-  const [inputType, setInputType] = useState('text');
   const [value, setValue] = useState<string | boolean>(formValue);
   const [isValid, setIsValid] = useState(true);
   const [isTouched, setIsTouched] = useState(false);
   const [helperText, setHelperText] = useState<string | undefined>(void 0);
+
+  /**
+   * We attach this unique id to the input's data-formalizer-id attribute so we can properly
+   * handle inputs with repeated names, such as use cases involving radio buttons.
+   */
+  const inputUniqueIdRef = useRef(
+    Math.random()
+      .toString(36)
+      .substr(2, 9)
+  );
 
   const handleValidationRef = useRef(
     (
@@ -137,11 +150,10 @@ export const useFormInput = ({
 
   // rewrite self and parent's value
   const handleChange = (e: FormEvent<HTMLInputElement>) => {
-    const { type, checked } = e.currentTarget;
+    const { checked } = e.currentTarget;
     const inputValue = e.currentTarget.value;
 
-    setInputType(type);
-    const newValue = type === 'checkbox' ? checked : inputValue;
+    const newValue = inputType === 'checkbox' ? checked : inputValue;
 
     const newFormData = {
       ...formData,
@@ -156,8 +168,7 @@ export const useFormInput = ({
     setValue(newValue);
 
     let newIsTouched = isTouched;
-    if (isInputToggleable(type)) {
-      setInputType(type);
+    if (isInputToggleable(inputType)) {
       newIsTouched = true;
       setIsTouched(newIsTouched);
     }
@@ -165,7 +176,7 @@ export const useFormInput = ({
     handleValidationRef.current(
       newValue,
       newFormData,
-      isInputToggleable(type),
+      isInputToggleable(inputType),
       newIsTouched
     );
   };
@@ -212,12 +223,20 @@ export const useFormInput = ({
     name,
     onBlur: handleValueAccepted(true),
     onChange: handleChange,
-    onKeyPress: handleKeyPress
+    onKeyPress: handleKeyPress,
+    type: inputType,
+    [FORMALIZER_ID_DATA_ATTRIBUTE]: inputUniqueIdRef.current
   };
 
-  typeof value === 'boolean'
-    ? (inputAttr.checked = value)
-    : (inputAttr.value = value);
+  if (inputType === 'checkbox') {
+    inputAttr.checked = typeof value === 'boolean' ? value : false;
+  } else if (inputType === 'radio') {
+    inputAttr.value = inputValueAttributeVal;
+    inputAttr.checked = value === inputValueAttributeVal;
+  } else {
+    // assume the type is text, or text equivalent such as password, search, email and others.
+    inputAttr.value = value;
+  }
 
   const formInputData = {
     inputAttr,

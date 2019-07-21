@@ -50,10 +50,10 @@ export const buildDisconnectedForm = (
     <span id="field1Error">{formInfo.errors['field1']}</span>
     <input name="field2" {...formInfo.useInput('field2', field2Validation)} />
     <span id="field2Error">{formInfo.errors['field2']}</span>
-    <input type="checkbox" {...formInfo.useInput('checkboxField')} />
-    <input type="radio" value="a" {...formInfo.useInput('radioField')} />
-    <input type="radio" value="b" {...formInfo.useInput('radioField')} />
-    <input type="radio" value="c" {...formInfo.useInput('radioField')} />
+    <input {...formInfo.useCheckboxInput('checkboxField')} />
+    <input {...formInfo.useRadioInput('radioField', 'a')} />
+    <input {...formInfo.useRadioInput('radioField', 'b')} />
+    <input {...formInfo.useRadioInput('radioField', 'c')} />
   </>
 );
 
