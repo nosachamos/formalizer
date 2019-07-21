@@ -1,6 +1,6 @@
 {
   "name": "formalizer",
-  "version": "1.0.0-rc.11",
+  "version": "1.0.0-rc.12",
   "description": "React hooks based form validation made for humans.",
   "main": "build/index.js",
   "typings": "build/index.d.ts",
