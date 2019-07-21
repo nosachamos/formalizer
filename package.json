@@ -164,7 +164,7 @@
   },
   "lint-staged": {
     "linters": {
-      "{src,test}/**/*.ts": [
+      "{src,test}/**/*.{ts,jsx}": [
         "prettier --write",
         "git add"
       ]
