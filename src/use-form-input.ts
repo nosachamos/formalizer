@@ -211,7 +211,7 @@ export const useFormInput = ({
     onBlur: handleValueAccepted(true),
     onChange: handleChange,
     onKeyPress: handleKeyPress,
-    onRunValidations: handleValueAccepted(false)
+    runValidations: handleValueAccepted(false)
   };
 
   typeof value === 'boolean'
