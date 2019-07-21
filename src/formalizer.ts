@@ -82,6 +82,11 @@ export interface FormInputParams {
   helperTextAttr?: string;
 }
 
+export interface FormInputData {
+  inputAttr: InputAttributes;
+  runValidations: () => boolean;
+}
+
 export interface InputAttributes {
   value?: any;
   checked?: boolean;
@@ -89,7 +94,6 @@ export interface InputAttributes {
   onKeyPress: (e: KeyboardEvent) => void;
   onChange: (e: FormEvent<HTMLInputElement>) => any;
   onBlur: () => any;
-  runvalidations: () => boolean;
   helperTextObj?: { [key: string]: string };
   invalidAttr?: object;
 }
@@ -134,18 +138,14 @@ export const useFormalizer = (
   const [mounted, setMounted] = useState(false);
 
   /**
-   * We keep a map of forms being validated so that we can have multiple forms being validated in the same page.
-   */
-  const inputsMap = useRef<{
-    [key: string]: InputAttributes;
-  }>({});
-
-  /**
-   * Map of form inputs by input name. This is used when we have a connected form.
+   * Map of form inputs by input name. When we have a connected forms, there is an entry per form.
+   * There is one special entry for disconnected forms.
    */
   const formInputsMap = useRef<{
-    [key: string]: { [key: string]: InputAttributes };
+    [key: string]: { [key: string]: FormInputData };
   }>({});
+
+  const DISCONNECTED_FORM_INPUTS = '$$$DISCONNECTED_FORM_INPUTS$$$';
 
   const [values, setValues] = formHandler;
   const [errors, setErrors] = errorHandler;
@@ -182,13 +182,15 @@ export const useFormalizer = (
       // trigger validation on each of the form's inputs
       if (formInputsByName) {
         Object.keys(formInputsByName).forEach(inputName =>
-          formInputsByName[inputName].onBlur()
+          formInputsByName[inputName].inputAttr.onBlur()
         );
       }
     } else {
+      const formInputsByName = formInputsMap.current[DISCONNECTED_FORM_INPUTS];
+
       // trigger validation on each of the form's inputs
-      const allInputsValid = Object.keys(inputsMap.current).every(inputName =>
-        inputsMap.current[inputName].runvalidations()
+      const allInputsValid = Object.keys(formInputsByName).every(inputName =>
+        formInputsByName[inputName].runValidations()
       );
 
       // now we need to trigger the submit handler if there are no errors
@@ -201,7 +203,7 @@ export const useFormalizer = (
   };
 
   const useInput = (name: string, validationConfigs: InputValidation[]) => {
-    const inputAttr = useFormInput({
+    const formInputData = useFormInput({
       formHandler,
       formRef,
       helperTextAttr,
@@ -218,14 +220,19 @@ export const useFormalizer = (
         formInputsMap.current[formRef.current.formValidationIdAttr] = {};
       }
       formInputsMap.current[formRef.current.formValidationIdAttr][
-        inputAttr.name
-      ] = inputAttr;
+        formInputData.inputAttr.name
+      ] = formInputData;
     } else {
       // disconnected form - all inputs on the same group
-      inputsMap.current[inputAttr.name] = inputAttr;
+      if (!formInputsMap.current[DISCONNECTED_FORM_INPUTS]) {
+        formInputsMap.current[DISCONNECTED_FORM_INPUTS] = {};
+      }
+      formInputsMap.current[DISCONNECTED_FORM_INPUTS][
+        formInputData.inputAttr.name
+      ] = formInputData;
     }
 
-    return inputAttr;
+    return formInputData.inputAttr;
   };
 
   const formSubmitHandler = (e: Event) => {

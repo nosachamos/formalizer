@@ -39,6 +39,51 @@ describe('Disconnected form validation', () => {
     }
   });
 
+  it(`Rio buttons comes out checked according to its initial value.`, () => {
+    const FormWrapper = () => {
+      formInfo = useFormalizer(null, {
+        field1: '',
+        field2: '',
+        checkboxField: true,
+        radioField: 'b'
+      });
+
+      return buildDisconnectedForm(formInfo);
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    // radio comes checked correctly according to the given initial value
+    expect(wrapper.find('[type="radio"][value="a"]').props().checked).toBe(
+      false
+    );
+    expect(wrapper.find('[type="radio"][value="b"]').props().checked).toBe(
+      true
+    );
+    expect(wrapper.find('[type="radio"][value="c"]').props().checked).toBe(
+      false
+    );
+
+    act(() => {
+      formInfo.performValidations();
+    });
+
+    expect(formInfo.isValid).toBe(true);
+
+    // radio comes checked correctly according to the given initial value
+    expect(wrapper.find('[type="radio"][value="a"]').props().checked).toBe(
+      false
+    );
+    expect(wrapper.find('[type="radio"][value="b"]').props().checked).toBe(
+      true
+    );
+    expect(wrapper.find('[type="radio"][value="c"]').props().checked).toBe(
+      false
+    );
+  });
+
   it(`Checkbox comes out checked if its initial value was set to true.`, () => {
     const FormWrapper = () => {
       formInfo = useFormalizer(null, {

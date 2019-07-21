@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import {
   FormData,
+  FormInputData,
   FormInputParams,
   InputAttributes,
   InputValidationByKey,
@@ -18,7 +19,7 @@ export const useFormInput = ({
   invalidAttr = {},
   submitHandler,
   helperTextAttr
-}: FormInputParams): InputAttributes => {
+}: FormInputParams): FormInputData => {
   const [formData, setFormData] = formHandler;
   const formValue = formData[name];
   const [inputType, setInputType] = useState('text');
@@ -101,6 +102,7 @@ export const useFormInput = ({
       } else {
         // if form is not connected, and we have a submit handler, we call it every time validation passes. Otherwise
         // we do nothing here.
+
         if (!formRef.current && inputIsTouched && invokeSubmitHandler) {
           if (submitHandler) {
             submitHandler(currentFormData);
@@ -210,13 +212,17 @@ export const useFormInput = ({
     name,
     onBlur: handleValueAccepted(true),
     onChange: handleChange,
-    onKeyPress: handleKeyPress,
-    runvalidations: handleValueAccepted(false)
+    onKeyPress: handleKeyPress
   };
 
   typeof value === 'boolean'
     ? (inputAttr.checked = value)
     : (inputAttr.value = value);
 
-  return inputAttr;
+  const formInputData = {
+    inputAttr,
+    runValidations: handleValueAccepted(false)
+  };
+
+  return formInputData;
 };
