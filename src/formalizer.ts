@@ -89,7 +89,7 @@ export interface InputAttributes {
   onKeyPress: (e: KeyboardEvent) => void;
   onChange: (e: FormEvent<HTMLInputElement>) => any;
   onBlur: () => any;
-  runValidations: () => boolean;
+  runvalidations: () => boolean;
   helperTextObj?: { [key: string]: string };
   invalidAttr?: object;
 }
@@ -188,7 +188,7 @@ export const useFormalizer = (
     } else {
       // trigger validation on each of the form's inputs
       const allInputsValid = Object.keys(inputsMap.current).every(inputName =>
-        inputsMap.current[inputName].runValidations()
+        inputsMap.current[inputName].runvalidations()
       );
 
       // now we need to trigger the submit handler if there are no errors
