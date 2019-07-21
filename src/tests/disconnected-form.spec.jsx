@@ -39,7 +39,7 @@ describe('Disconnected form validation', () => {
     }
   });
 
-  it(`Rio buttons comes out checked according to its initial value.`, () => {
+  it(`Radio buttons comes out checked according to its initial value.`, () => {
     const FormWrapper = () => {
       formInfo = useFormalizer(null, {
         field1: '',
