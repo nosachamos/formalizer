@@ -25,6 +25,12 @@ export const useFormInput = ({
   inputValueAttributeVal
 }: FormInputParams): FormInputData => {
   const [formData, setFormData] = formHandler;
+  const [previousFormData, setPreviousFormData] = useState<FormData | null>(
+    null
+  );
+  const [previousValidationResult, setPreviousValidationResult] = useState(
+    true
+  );
   const formValue = formData[name];
   const [value, setValue] = useState<string | boolean>(formValue);
   const [isValid, setIsValid] = useState(true);
@@ -48,6 +54,11 @@ export const useFormInput = ({
       invokeSubmitHandler: boolean,
       inputIsTouched: boolean
     ): boolean => {
+      if (previousFormData === currentFormData) {
+        // data didn't change since previous time we invoked the submitHandler, so we don't need to invoke it again or do validations.
+        return previousValidationResult;
+      }
+
       let result: Array<string | undefined> | undefined;
 
       if (inputIsTouched) {
@@ -117,6 +128,7 @@ export const useFormInput = ({
         // we do nothing here.
         if (!formRef.current && inputIsTouched && invokeSubmitHandler) {
           if (submitHandler) {
+            setPreviousFormData(currentFormData);
             submitHandler(currentFormData);
           }
         }
@@ -125,6 +137,7 @@ export const useFormInput = ({
         updateError(name);
       }
 
+      setPreviousValidationResult(!result);
       return !result;
     }
   );
