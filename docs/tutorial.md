@@ -142,10 +142,14 @@ Next, we want to make sure the value selected by the user on the checkbox and se
 To accomplish, all we need is to add the two other input hooks supported by Formalizer: `useCheckboxInput` and `useRadioInput`. Note that the input type is not longer needed since they are implied when using these hooks. Also, for radio buttons, we will supply the value for each radio input as the second argument of the `useRadioInput` hook, so we don't need those attributes anymore either.
 
 ```jsx
- <input {...useCheckboxInput('signupForNewsletter')} />
+const { formRef, useInput, useCheckboxInput, useRadioInput } = useFormalizer();
 
- <input {...useRadioInput('newsletterFrequency', 'dailyNewsletter')} />
- <input {...useRadioInput('newsletterFrequency', 'weeklyNewsletter')} />
+...
+
+<input {...useCheckboxInput('signupForNewsletter')} />
+
+<input {...useRadioInput('newsletterFrequency', 'dailyNewsletter')} />
+<input {...useRadioInput('newsletterFrequency', 'weeklyNewsletter')} />
 ```
 
 That's it. Now when this form is submitted, the form data will include a `signupForNewsletter` with a boolean value indicating whether the checkbox was checked, and a `newsletterFrequency` string property whose value corresponds to the selected radio button.
@@ -254,7 +258,7 @@ const UserProfileComponent = ({userProfile}) =>
         // do something with formData, such as send it to the server
     }
 
-    const { formRef, useInput, errors, isValid } = useFormalizer(handleSubmit, userProfile);
+    const { formRef, useInput, useCheckboxInput, useRadioInput, errors, isValid } = useFormalizer(handleSubmit, userProfile);
 
     return (
         <form ref={formRef}>
