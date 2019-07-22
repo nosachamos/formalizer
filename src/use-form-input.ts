@@ -54,7 +54,9 @@ export const useFormInput = ({
       invokeSubmitHandler: boolean,
       inputIsTouched: boolean
     ): boolean => {
-      if (previousFormData === currentFormData) {
+      if (
+        JSON.stringify(previousFormData) === JSON.stringify(currentFormData)
+      ) {
         // data didn't change since previous time we invoked the submitHandler, so we don't need to invoke it again or do validations.
         return previousValidationResult;
       }
