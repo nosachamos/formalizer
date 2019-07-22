@@ -115,7 +115,6 @@ export const useFormInput = ({
       } else {
         // if form is not connected, and we have a submit handler, we call it every time validation passes. Otherwise
         // we do nothing here.
-
         if (!formRef.current && inputIsTouched && invokeSubmitHandler) {
           if (submitHandler) {
             submitHandler(currentFormData);

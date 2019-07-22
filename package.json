@@ -37,7 +37,7 @@
     "test:coverage": "jest --coverage && codecov",
     "test:watch": "jest --watch",
     "test-release": "run-s build test-release:*",
-    "test-release:lint": "tslint --project . && prettier \"src/**/*.ts\" --list-different",
+    "test-release:lint": "tslint --project . && prettier \"src/**/*.ts\" --list-different --print-width=120",
     "test-release:unit": "npm run test -- --no-cache",
     "release": "run-s release:*",
     "release:prepare-release": "run-s clean build prepare doc:generate",
@@ -165,7 +165,7 @@
   "lint-staged": {
     "linters": {
       "{src,test}/**/*.{ts,jsx}": [
-        "prettier --write",
+        "prettier --write --print-width=120",
         "git add"
       ]
     }

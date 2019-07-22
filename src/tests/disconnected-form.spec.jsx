@@ -84,6 +84,56 @@ describe('Disconnected form validation', () => {
     );
   });
 
+  it(`Radio buttons can be used in disconnected forms, and picked value is correctly applied.`, () => {
+    // we mock this submit handler to perform the assertions we need in the data that is passed to it
+    submitHandler.mockImplementationOnce(formData => {
+      expect(formData).not.toBeNull();
+      expect(formData).not.toBeNull();
+      expect(formData.field1).not.toBeNull();
+      expect(formData.field2).not.toBeNull();
+      expect(formData.checkboxField).not.toBeNull();
+      expect(formData.radioField).not.toBeNull();
+      expect(formData.field1).toBe('test1');
+      expect(formData.field2).toBe('test2');
+      expect(formData.checkboxField).toBe(true);
+      expect(formData.radioField).toBe('a');
+    });
+
+    const FormWrapper = () => {
+      formInfo = useFormalizer(submitHandler, {
+        field1: 'test1',
+        field2: 'test2',
+        checkboxField: true,
+        radioField: 'b'
+      });
+
+      return buildDisconnectedForm(formInfo);
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    // select a different radio button
+    act(() => {
+      wrapper.find('[type="radio"][value="a"]').prop('onChange')({
+        currentTarget: { value: 'a' }
+      });
+    });
+
+    expect(formInfo.isValid).toBe(true);
+
+    performBasicAssertions();
+
+    // trigger a form validation so that the submitHandler is invoked now
+    act(() => {
+      formInfo.performValidations();
+    });
+
+    // resetting the calls and mock implementation
+    submitHandler.mockClear();
+  });
+
   it(`Checkbox comes out checked if its initial value was set to true.`, () => {
     const FormWrapper = () => {
       formInfo = useFormalizer(null, {

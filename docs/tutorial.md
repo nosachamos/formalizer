@@ -11,6 +11,11 @@ const UserProfileComponent = () =>
             <input type="password" name="password" />
             <input type="password" name="passwordConfirmation" />
 
+            <input type="checkbox" name="signupForNewsletter" />
+
+            <input type="radio" name="newsletterFrequency" value="dailyNewsletter" />
+            <input type="radio" name="newsletterFrequency" value="weeklyNewsletter" />
+
             <button type="submit">Submit</button>
         </form>
     );
@@ -32,6 +37,9 @@ First, since we will be adding Formalizer to this form, we won't need the `name`
   <input />
   <input type="password" />
   <input type="password" />
+  <input type="checkbox" />
+  <input type="radio" value="dailyNewsletter" />
+  <input type="radio" value="weeklyNewsletter" />
 
   <button type="submit">Submit</button>
 </form>
@@ -52,9 +60,7 @@ We then can use the `useInput` field to add validations to the inputs. Let's mak
 ```jsx
 <form ref={formRef}>
   <input {...useInput('email', 'isRequired')} />
-  <input type="password" />
-  <input type="password" />
-
+  ...
   <button type="submit">Submit</button>
 </form>
 ```
@@ -129,30 +135,24 @@ import { mustMatch } from 'formalizer';
 
 The last thing left to do, is display the validation errors when they occur.
 
-## Displaying validation errors
+## Checkbox and radio button selections
 
-To display the validation errors, we add a `span` elements to our form:
+Next, we want to make sure the value selected by the user on the checkbox and set of radio buttons is included in the form data we send to the server.
+
+To accomplish, all we need is to add the two other input hooks supported by Formalizer: `useCheckboxInput` and `useRadioInput`. Note that the input type is not longer needed since they are implied when using these hooks. Also, for radio buttons, we will supply the value for each radio input as the second argument of the `useRadioInput` hook, so we don't need those attributes anymore either.
 
 ```jsx
-<form ref="{formRef}">
-  <input {...useInput('email', 'isRequired')} />
-  <span></span>
+ <input {...useCheckboxInput('signupForNewsletter')} />
 
-  <input
-    type="password"
-    {...useInput('password', ['isRequired', containsZLetter])}
-  />
-  <span></span>
-
-  <input
-    type="password"
-    {...useInput('passConfirmation', mustMatch('password'))}
-  />
-  <span></span>
-
-  <button type="submit">Submit</button>
-</form>
+ <input {...useRadioInput('newsletterFrequency', 'dailyNewsletter')} />
+ <input {...useRadioInput('newsletterFrequency', 'weeklyNewsletter')} />
 ```
+
+That's it. Now when this form is submitted, the form data will include a `signupForNewsletter` with a boolean value indicating whether the checkbox was checked, and a `newsletterFrequency` string property whose value corresponds to the selected radio button.
+
+## Displaying validation errors
+
+To display the validation errors, we add a `span` elements to our form.
 
 The `useFormalizer` hook also returns an `errors` object which contains the errors currently in the form:
 
@@ -160,7 +160,7 @@ The `useFormalizer` hook also returns an `errors` object which contains the erro
 const { formRef, useInput, errors } = useFormalizer();
 ```
 
-We then use it to display the errors:
+We then use it to display the errors within the newly added span elements:
 
 ```jsx
 <form ref={formRef}>
@@ -178,6 +178,11 @@ We then use it to display the errors:
     {...useInput('passConfirmation', mustMatch('password'))}
   />
   <span>{errors['passConfirmation']}</span>
+
+  <input {...useCheckboxInput('signupForNewsletter')} />
+
+  <input {...useRadioInput('newsletterFrequency', 'dailyNewsletter')} />
+  <input {...useRadioInput('newsletterFrequency', 'weeklyNewsletter')} />
 
   <button type="submit">Submit</button>
 </form>
@@ -245,7 +250,7 @@ const mustContainZ = {
 
 const UserProfileComponent = ({userProfile}) =>
 
-    const handleSubmit = (event, formData) => {
+    const handleSubmit = (formData, event) => {
         // do something with formData, such as send it to the server
     }
 
@@ -263,6 +268,11 @@ const UserProfileComponent = ({userProfile}) =>
             <input type="password"
                 {...useInput('passConfirmation', mustMatch('password'))} />
             <span>{errors['passConfirmation']}</span>
+
+            <input {...useCheckboxInput('signupForNewsletter')} />
+
+            <input {...useRadioInput('newsletterFrequency', 'dailyNewsletter')} />
+            <input {...useRadioInput('newsletterFrequency', 'weeklyNewsletter')} />
 
             <button disabled={!isValid} type="submit">Submit</button>
         </form>
