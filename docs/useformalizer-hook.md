@@ -27,6 +27,8 @@ import { useFormalizer } from 'formalizer';
     const {
             formRef,
             useInput,
+            useCheckboxInput,
+            useRadioInput,
             errors,
             isValid,
             performValidations,
