@@ -218,12 +218,12 @@ export const useFormalizer = (
       formRef,
       helperTextAttr,
       inputType,
+      inputValueAttributeVal,
       invalidAttr,
       name,
       submitHandler,
       updateError,
-      validation: validationConfigs,
-      inputValueAttributeVal
+      validation: validationConfigs
     });
 
     if (formRef.current) {
@@ -317,8 +317,8 @@ export const useFormalizer = (
     isValid: mounted && !Object.values(errors).length,
     performValidations,
     setValues: externalSetValues,
-    useInput,
     useCheckboxInput,
+    useInput,
     useRadioInput
   };
 };
