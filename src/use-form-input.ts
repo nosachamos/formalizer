@@ -167,7 +167,7 @@ export const useFormInput = <T extends { [key: string]: string | boolean }>({
     const newValue = inputType === 'checkbox' ? checked : inputValue;
 
     const newFormData = {
-      ...formData,
+      ...(formData as any),
       [name]: newValue
     };
 
