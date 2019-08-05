@@ -20,50 +20,40 @@ export const FormalizerSettings: FormalizerSettingsType = {
 };
 
 export const GlobalValidators: {
-  [key: string]: InputValidationConfig | string;
+  [key: string]: InputValidationConfig<any> | string;
 } = {
   isRequired: 'This field is required.'
 };
 
 export const DEFAULT_VALIDATION_ERROR_MESSAGE = 'This field is not valid.';
 
-export type ValidatorFunction = (value: any, options: Options) => boolean;
+export type ValidatorFunction<T> = (value: any, options: Options<T>) => boolean;
 
-export interface InputValidationConfig {
+export interface InputValidationConfig<T> {
   key?: string;
-  errorMessage?: string | ErrorMessageFunction;
+  errorMessage?: string | ErrorMessageFunction<T>;
   negate?: boolean;
-  options?: Options;
-  validator?: ValidatorFunction | string;
+  options?: Options<T>;
+  validator?: ValidatorFunction<T> | string;
 }
 
-export const isInputValidationConfig = (
+export const isInputValidationConfig = <T>(
   value: any
-): value is InputValidationConfig =>
+): value is InputValidationConfig<T> =>
   value !== undefined &&
   value !== null &&
   (typeof value.validator === 'string' ||
     typeof value.validator === 'function');
 
-export interface FormData {
-  [key: string]: any;
+type FormSubmitHandler<T> = (formValues: T, e?: Event) => void;
+
+export type ErrorMessageFunction<T> = (value: string, formData: T) => string;
+
+export interface InputValidationByKey<T> {
+  [key: string]: InputValidationConfig<T> | string;
 }
 
-type FormSubmitHandler = (
-  formValues: { [ley: string]: any },
-  e?: Event
-) => boolean;
-
-export type ErrorMessageFunction = (
-  value: string,
-  formData: FormData
-) => string;
-
-export interface InputValidationByKey {
-  [key: string]: InputValidationConfig | string;
-}
-
-type InputValidation = InputValidationConfig | string;
+type InputValidation<T> = InputValidationConfig<T> | string;
 
 type ValidationErrorUpdater = (
   name: string,
@@ -71,16 +61,16 @@ type ValidationErrorUpdater = (
   errorMessage?: string
 ) => void;
 
-export interface FormInputParams {
+export interface FormInputParams<T> {
   name: string;
-  formHandler: [FormData, Dispatch<SetStateAction<FormData>>];
+  formHandler: [T, Dispatch<SetStateAction<T>>];
   formRef: MutableRefObject<HTMLFormElement | null>;
   updateError: ValidationErrorUpdater;
   invalidAttr?: object;
   inputType: string;
   inputValueAttributeVal?: string;
-  submitHandler?: FormSubmitHandler;
-  validation: InputValidation[];
+  submitHandler?: FormSubmitHandler<T>;
+  validation: InputValidation<T>[];
   helperTextAttr?: string;
 }
 
@@ -102,9 +92,9 @@ export interface InputAttributes {
   [FORMALIZER_ID_DATA_ATTRIBUTE]: string;
 }
 
-export interface Options {
+export interface Options<T> {
   [key: string]: any;
-  formData: { [key: string]: string };
+  formData: T;
 }
 
 export function setupForMaterialUI(): void {
@@ -112,9 +102,9 @@ export function setupForMaterialUI(): void {
   FormalizerSettings.helperTextAttr = 'helperText';
 }
 
-export const useFormalizer = (
-  submitHandler?: FormSubmitHandler,
-  initialValues?: FormData,
+export const useFormalizer = <T extends { [key: string]: any } = {}>(
+  submitHandler?: FormSubmitHandler<T>,
+  initialValues?: T,
   settings?: FormalizerSettingsType
 ) => {
   // some basic validations
@@ -137,7 +127,7 @@ export const useFormalizer = (
     ? settings
     : FormalizerSettings;
 
-  const formHandler = useState(initialValues ? initialValues : {});
+  const formHandler = useState<T>(initialValues ? initialValues : ({} as any));
   const errorHandler = useState<{ [key: string]: string }>({});
   const [mounted, setMounted] = useState(false);
 
@@ -210,10 +200,10 @@ export const useFormalizer = (
   const useInputHandler = (
     name: string,
     inputValueAttributeVal: string | undefined,
-    validationConfigs: InputValidation[] = [],
+    validationConfigs: InputValidation<T>[] = [],
     inputType: string
   ) => {
-    const formInputData = useFormInput({
+    const formInputData = useFormInput<T>({
       formHandler,
       formRef,
       helperTextAttr,
@@ -247,18 +237,18 @@ export const useFormalizer = (
     return formInputData.inputAttr;
   };
 
-  const useInput = (name: string, validationConfigs?: InputValidation[]) =>
+  const useInput = (name: string, validationConfigs?: InputValidation<T>[]) =>
     useInputHandler(name, undefined, validationConfigs, 'text');
 
   const useCheckboxInput = (
     name: string,
-    validationConfigs?: InputValidation[]
+    validationConfigs?: InputValidation<T>[]
   ) => useInputHandler(name, undefined, validationConfigs, 'checkbox');
 
   const useRadioInput = (
     name: string,
     value: string,
-    validationConfigs?: InputValidation[]
+    validationConfigs?: InputValidation<T>[]
   ) => useInputHandler(name, value, validationConfigs, 'radio');
 
   const formSubmitHandler = (e: Event) => {
@@ -305,7 +295,7 @@ export const useFormalizer = (
   }
 
   // we proxy this set state call so that we can trigger a form validation once a new set of values has been set on the form.
-  const externalSetValues = (formValues: FormData) => {
+  const externalSetValues = (formValues: T) => {
     setValues(formValues);
     performValidations();
   };

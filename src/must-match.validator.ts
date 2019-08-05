@@ -1,7 +1,9 @@
 import { InputValidationConfig, Options } from './formalizer';
 
-export const mustMatch = (fieldName: string): InputValidationConfig => ({
+export const mustMatch = <T extends { [key: string]: any }>(
+  fieldName: string
+): InputValidationConfig<T> => ({
   errorMessage: `Must match the ${fieldName} field.`,
-  validator: (value: string, options: Options) =>
+  validator: (value: string, options: Options<T>) =>
     value === options.formData[fieldName]
 });

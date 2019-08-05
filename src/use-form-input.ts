@@ -1,6 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import {
-  FormData,
   FormInputData,
   FormInputParams,
   InputAttributes,
@@ -12,7 +11,7 @@ import { validate } from './validate';
 
 export const FORMALIZER_ID_DATA_ATTRIBUTE = 'data-formalizer-id';
 
-export const useFormInput = ({
+export const useFormInput = <T extends { [key: string]: string | boolean }>({
   name,
   formHandler,
   formRef,
@@ -23,16 +22,14 @@ export const useFormInput = ({
   submitHandler,
   helperTextAttr,
   inputValueAttributeVal
-}: FormInputParams): FormInputData => {
+}: FormInputParams<T>): FormInputData => {
   const [formData, setFormData] = formHandler;
-  const [previousFormData, setPreviousFormData] = useState<FormData | null>(
-    null
-  );
+  const [previousFormData, setPreviousFormData] = useState<T | null>(null);
   const [previousValidationResult, setPreviousValidationResult] = useState(
     true
   );
-  const formValue = formData[name];
-  const [value, setValue] = useState<string | boolean>(formValue);
+  const formValue = formData[name] as any;
+  const [value, setValue] = useState<any>(formValue);
   const [isValid, setIsValid] = useState(true);
   const [isTouched, setIsTouched] = useState(false);
   const [helperText, setHelperText] = useState<string | undefined>(void 0);
@@ -50,7 +47,7 @@ export const useFormInput = ({
   const handleValidationRef = useRef(
     (
       inputValue: any,
-      currentFormData: FormData,
+      currentFormData: T,
       invokeSubmitHandler: boolean,
       inputIsTouched: boolean
     ): boolean => {
@@ -64,7 +61,7 @@ export const useFormInput = ({
       let result: Array<string | undefined> | undefined;
 
       if (inputIsTouched) {
-        let validationToProcess: Array<string | InputValidationConfig>;
+        let validationToProcess: Array<string | InputValidationConfig<T>>;
 
         if (Array.isArray(validation)) {
           validation.forEach(v => {
@@ -89,7 +86,7 @@ export const useFormInput = ({
         }
 
         for (const v of validationToProcess) {
-          let validationConfig: InputValidationByKey | undefined = void 0;
+          let validationConfig: InputValidationByKey<T> | undefined = void 0;
 
           // if this is a string the user has just requested a validation by name, such as `isRequired`. Otherwise, user
           // has provided a validation config, so use that.
@@ -97,7 +94,7 @@ export const useFormInput = ({
           if (typeof v === 'string') {
             validationConfig = { [v]: {} };
           } else {
-            let key: string | undefined = void 0;
+            let key: string;
             if (!v.key) {
               key =
                 typeof v.validator === 'string'

@@ -1,7 +1,6 @@
 import {
   DEFAULT_VALIDATION_ERROR_MESSAGE,
   ErrorMessageFunction,
-  FormData,
   GlobalValidators,
   InputValidationByKey,
   InputValidationConfig,
@@ -38,10 +37,10 @@ const loadValidatorDependency = () => {
   return validator !== undefined;
 };
 
-const getErrorMessage = (
-  errorMsg: string | ErrorMessageFunction | undefined,
+const getErrorMessage = <T>(
+  errorMsg: string | ErrorMessageFunction<T> | undefined,
   value: string,
-  formData: FormData
+  formData: T
 ) => {
   if (typeof errorMsg === 'string') {
     return errorMsg;
@@ -60,18 +59,18 @@ const getErrorMessage = (
  * @param validation
  * @returns {*}
  */
-export const validate = (
+export const validate = <T>(
   value: any,
-  validation: InputValidationByKey,
-  formData: FormData
+  validation: InputValidationByKey<T>,
+  formData: T
 ) => {
-  const fieldsToValidate: InputValidationConfig[] = [];
+  const fieldsToValidate: InputValidationConfig<T>[] = [];
 
   Object.keys(validation).forEach(property => {
     let options = { formData };
     let errorMsg: string = DEFAULT_VALIDATION_ERROR_MESSAGE;
     let negate: boolean | undefined = false;
-    let validatorFunction: ValidatorFunction | undefined = void 0;
+    let validatorFunction: ValidatorFunction<T> | undefined = void 0;
 
     if (GlobalValidators[property]) {
       // making sure the given validator is of supported type
@@ -91,7 +90,7 @@ export const validate = (
           // @ts-ignore
           validatorFunction = validator[
             GlobalValidators[property] as string
-          ] as ValidatorFunction;
+          ] as ValidatorFunction<T>;
         }
         errorMsg = GlobalValidators[property] as string;
         negate = false;
@@ -99,7 +98,7 @@ export const validate = (
         // can only be an object at this point
         const propValidator = GlobalValidators[
           property
-        ] as InputValidationConfig;
+        ] as InputValidationConfig<T>;
 
         if (typeof propValidator.validator === 'string') {
           if (loadValidatorDependency()) {
@@ -128,7 +127,7 @@ export const validate = (
             : propValidator.options;
       }
     } else {
-      const valConfig = validation[property] as InputValidationConfig;
+      const valConfig = validation[property] as InputValidationConfig<T>;
 
       // if this is an empty object, user passed in just the string for a built in validator, which got converted to an
       // empty object before validate was invoked.
@@ -166,12 +165,12 @@ export const validate = (
   });
 
   let unmetValidationKey: string | undefined = void 0;
-  let errorMessage: string | ErrorMessageFunction | undefined = void 0;
+  let errorMessage: string | ErrorMessageFunction<T> | undefined = void 0;
   let isValid = true;
 
   for (const validationConfig of fieldsToValidate) {
     const property = validationConfig.key;
-    const configs: InputValidationConfig = validationConfig;
+    const configs: InputValidationConfig<T> = validationConfig;
 
     if (!configs.options) {
       configs.options = { formData };
