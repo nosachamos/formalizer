@@ -70,7 +70,7 @@ export interface FormInputParams<T> {
   inputType: string;
   inputValueAttributeVal?: string;
   submitHandler?: FormSubmitHandler<T>;
-  validation: InputValidation<T>[];
+  validation: Array<InputValidation<T>>;
   helperTextAttr?: string;
 }
 
@@ -200,7 +200,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
   const useInputHandler = (
     name: string,
     inputValueAttributeVal: string | undefined,
-    validationConfigs: InputValidation<T>[] = [],
+    validationConfigs: Array<InputValidation<T>> = [],
     inputType: string
   ) => {
     const formInputData = useFormInput<T>({
@@ -237,18 +237,20 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
     return formInputData.inputAttr;
   };
 
-  const useInput = (name: string, validationConfigs?: InputValidation<T>[]) =>
-    useInputHandler(name, undefined, validationConfigs, 'text');
+  const useInput = (
+    name: string,
+    validationConfigs?: Array<InputValidation<T>>
+  ) => useInputHandler(name, undefined, validationConfigs, 'text');
 
   const useCheckboxInput = (
     name: string,
-    validationConfigs?: InputValidation<T>[]
+    validationConfigs?: Array<InputValidation<T>>
   ) => useInputHandler(name, undefined, validationConfigs, 'checkbox');
 
   const useRadioInput = (
     name: string,
     value: string,
-    validationConfigs?: InputValidation<T>[]
+    validationConfigs?: Array<InputValidation<T>>
   ) => useInputHandler(name, value, validationConfigs, 'radio');
 
   const formSubmitHandler = (e: Event) => {

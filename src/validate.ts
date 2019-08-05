@@ -64,7 +64,7 @@ export const validate = <T>(
   validation: InputValidationByKey<T>,
   formData: T
 ) => {
-  const fieldsToValidate: InputValidationConfig<T>[] = [];
+  const fieldsToValidate: Array<InputValidationConfig<T>> = [];
 
   Object.keys(validation).forEach(property => {
     let options = { formData };
