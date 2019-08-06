@@ -51,6 +51,7 @@ export const buildDisconnectedForm = (
     <input name="field2" {...formInfo.useInput('field2', field2Validation)} />
     <span id="field2Error">{formInfo.errors['field2']}</span>
     <input {...formInfo.useCheckboxInput('checkboxField')} />
+    <input {...formInfo.useToggleInput('toggleField')} />
     <input {...formInfo.useRadioInput('radioField', 'a')} />
     <input {...formInfo.useRadioInput('radioField', 'b')} />
     <input {...formInfo.useRadioInput('radioField', 'c')} />

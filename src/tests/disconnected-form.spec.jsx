@@ -162,6 +162,34 @@ describe('Disconnected form validation', () => {
     expect(wrapper.find('[type="checkbox"]').props().checked).toBe(true);
   });
 
+  it(`Toggle button comes out checked if its initial value was set to true.`, () => {
+    const FormWrapper = () => {
+      formInfo = useFormalizer(null, {
+        field1: '',
+        field2: '',
+        toggleField: true
+      });
+
+      return buildDisconnectedForm(formInfo);
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    // toggle starts checked
+    expect(wrapper.find('[type="button"]').props().checked).toBe(true);
+
+    act(() => {
+      formInfo.performValidations();
+    });
+
+    expect(formInfo.isValid).toBe(true);
+
+    // toggle is still checked
+    expect(wrapper.find('[type="button"]').props().checked).toBe(true);
+  });
+
   it(`If no form is connected, errors are still raised even if no submitHandler is given.`, () => {
     const FormWrapper = () => {
       formInfo = useFormalizer(null, {
@@ -269,11 +297,13 @@ describe('Disconnected form validation', () => {
       // lets start by typing an incomplete email
       typeIntoInput(wrapper.find('[name="field1"]'), 'invalid@email');
     });
+    wrapper.update();
 
     act(() => {
       // lets start by typing an incomplete email
       typeIntoInput(wrapper.find('[name="field1"]'), 'also.an.invalid@email');
     });
+    wrapper.update();
 
     act(() => {
       formInfo.performValidations();
@@ -292,12 +322,110 @@ describe('Disconnected form validation', () => {
     );
   });
 
+  it(`If no form is connected, then the submitHandler is not invoked on when checkboxes, toggle buttons and radio buttons lose focus`, () => {
+    const FormWrapper = () => {
+      formInfo = useFormalizer(submitHandler, {
+        checkboxField: false,
+        toggleField: false,
+        radioField: 'b'
+      });
+
+      return buildDisconnectedForm(formInfo, 'isEmail', undefined);
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    // select a different radio button
+    act(() => {
+      wrapper.find('[type="radio"][value="a"]').prop('onChange')({
+        currentTarget: { value: 'a' }
+      });
+    });
+    wrapper.update();
+
+    // this blur event will not result in one more call to the submit handler mock function
+    act(() => {
+      wrapper.find('[type="radio"][value="a"]').prop('onBlur')({
+        currentTarget: { value: 'a' }
+      });
+    });
+    wrapper.update();
+
+    performBasicAssertions();
+
+    // the second argument is the form data, and it is correct
+    expect(submitHandler.mock.calls[0][0]).toEqual({
+      checkboxField: false,
+      toggleField: false,
+      radioField: 'a'
+    });
+    // reset the mock calls
+    submitHandler.mockClear();
+
+    // toggling the checkbox also results in a call to the submit handler
+    act(() => {
+      wrapper.find('[type="checkbox"]').prop('onChange')({
+        currentTarget: { type: 'checkbox', checked: true }
+      });
+    });
+    wrapper.update();
+
+    // this blur event will not result in one more call to the submit handler mock function
+    act(() => {
+      wrapper.find('[type="checkbox"]').prop('onBlur')({
+        currentTarget: { type: 'checkbox', checked: true }
+      });
+    });
+    wrapper.update();
+
+    performBasicAssertions();
+
+    // the second argument is the form data, and it is correct
+    expect(submitHandler.mock.calls[0][0]).toEqual({
+      checkboxField: true,
+      toggleField: false,
+      radioField: 'a'
+    });
+    // reset the mock calls
+    submitHandler.mockClear();
+
+    // toggling the toggle button also results in a call to the submit handler
+    act(() => {
+      wrapper.find('[type="button"]').prop('onChange')({
+        currentTarget: { type: 'button', checked: true }
+      });
+    });
+    wrapper.update();
+
+    // this blur event will not result in one more call to the submit handler mock function
+    act(() => {
+      wrapper.find('[type="button"]').prop('onBlur')({
+        currentTarget: { type: 'button', checked: true }
+      });
+    });
+    wrapper.update();
+
+    performBasicAssertions();
+
+    // the second argument is the form data, and it is correct
+    expect(submitHandler.mock.calls[0][0]).toEqual({
+      checkboxField: true,
+      toggleField: true,
+      radioField: 'a'
+    });
+    // reset the mock calls
+    submitHandler.mockClear();
+  });
+
   it(`If no form is connected, then the submitHandler is invoked on when data is accepted`, () => {
     const FormWrapper = () => {
       formInfo = useFormalizer(submitHandler, {
         field1: '',
         field2: '',
-        checkboxField: false
+        checkboxField: false,
+        toggleField: false
       });
 
       return buildDisconnectedForm(formInfo, 'isEmail', undefined);
@@ -311,11 +439,13 @@ describe('Disconnected form validation', () => {
       // lets start by typing an incomplete email
       typeIntoInput(wrapper.find('[name="field1"]'), 'john-smithl@email.com');
     });
+    wrapper.update();
 
     act(() => {
       // then press Enter
       wrapper.find('[name="field1"]').simulate('keypress', { key: 'Enter' });
     });
+    wrapper.update();
 
     performBasicAssertions();
 
@@ -323,7 +453,8 @@ describe('Disconnected form validation', () => {
     expect(submitHandler.mock.calls[0][0]).toEqual({
       field1: 'john-smithl@email.com',
       field2: '',
-      checkboxField: false
+      checkboxField: false,
+      toggleField: false
     });
     // reset the mock calls
     submitHandler.mockClear();
@@ -332,11 +463,13 @@ describe('Disconnected form validation', () => {
       // type on the field with no validations, and press Enter
       typeIntoInput(wrapper.find('[name="field2"]'), 'test value');
     });
+    wrapper.update();
 
     act(() => {
       // then press Enter
       wrapper.find('[name="field2"]').simulate('keypress', { key: 'Enter' });
     });
+    wrapper.update();
 
     performBasicAssertions();
 
@@ -344,7 +477,8 @@ describe('Disconnected form validation', () => {
     expect(submitHandler.mock.calls[0][0]).toEqual({
       field1: 'john-smithl@email.com',
       field2: 'test value',
-      checkboxField: false
+      checkboxField: false,
+      toggleField: false
     });
     // reset the mock calls
     submitHandler.mockClear();
@@ -355,6 +489,7 @@ describe('Disconnected form validation', () => {
         currentTarget: { type: 'checkbox', checked: true }
       });
     });
+    wrapper.update();
 
     performBasicAssertions();
 
@@ -362,7 +497,28 @@ describe('Disconnected form validation', () => {
     expect(submitHandler.mock.calls[0][0]).toEqual({
       field1: 'john-smithl@email.com',
       field2: 'test value',
-      checkboxField: true
+      checkboxField: true,
+      toggleField: false
+    });
+    // reset the mock calls
+    submitHandler.mockClear();
+
+    // toggling the toggle button also results in a call to the submit handler
+    act(() => {
+      wrapper.find('[type="button"]').prop('onChange')({
+        currentTarget: { type: 'button', checked: true }
+      });
+    });
+    wrapper.update();
+
+    performBasicAssertions();
+
+    // the second argument is the form data, and it is correct
+    expect(submitHandler.mock.calls[0][0]).toEqual({
+      field1: 'john-smithl@email.com',
+      field2: 'test value',
+      checkboxField: true,
+      toggleField: true
     });
     // reset the mock calls
     submitHandler.mockClear();
@@ -371,11 +527,13 @@ describe('Disconnected form validation', () => {
     act(() => {
       typeIntoInput(wrapper.find('[name="field1"]'), 'john@invalid');
     });
+    wrapper.update();
 
     act(() => {
       // then press Enter
       wrapper.find('[name="field1"]').simulate('keypress', { key: 'Enter' });
     });
+    wrapper.update();
 
     // handler was not invoked - data isn't valid
     expect(submitHandler).not.toHaveBeenCalled();
@@ -384,11 +542,13 @@ describe('Disconnected form validation', () => {
     act(() => {
       typeIntoInput(wrapper.find('[name="field1"]'), 'john-smith@invalid');
     });
+    wrapper.update();
 
     act(() => {
       // remove focus from the field
       wrapper.find('[name="field1"]').simulate('blur');
     });
+    wrapper.update();
 
     // handler was not invoked - data isn't valid
     expect(submitHandler).not.toHaveBeenCalled();

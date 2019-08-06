@@ -24,10 +24,6 @@ export const useFormInput = <T extends { [key: string]: string | boolean }>({
   inputValueAttributeVal
 }: FormInputParams<T>): FormInputData => {
   const [formData, setFormData] = formHandler;
-  const [previousFormData, setPreviousFormData] = useState<T | null>(null);
-  const [previousValidationResult, setPreviousValidationResult] = useState(
-    true
-  );
   const formValue = formData[name] as any;
   const [value, setValue] = useState<any>(formValue);
   const [isValid, setIsValid] = useState(true);
@@ -51,13 +47,6 @@ export const useFormInput = <T extends { [key: string]: string | boolean }>({
       invokeSubmitHandler: boolean,
       inputIsTouched: boolean
     ): boolean => {
-      if (
-        JSON.stringify(previousFormData) === JSON.stringify(currentFormData)
-      ) {
-        // data didn't change since previous time we invoked the submitHandler, so we don't need to invoke it again or do validations.
-        return previousValidationResult;
-      }
-
       let result: Array<string | undefined> | undefined;
 
       if (inputIsTouched) {
@@ -127,7 +116,6 @@ export const useFormInput = <T extends { [key: string]: string | boolean }>({
         // we do nothing here.
         if (!formRef.current && inputIsTouched && invokeSubmitHandler) {
           if (submitHandler) {
-            setPreviousFormData(currentFormData);
             submitHandler(currentFormData);
           }
         }
@@ -136,13 +124,12 @@ export const useFormInput = <T extends { [key: string]: string | boolean }>({
         updateError(name);
       }
 
-      setPreviousValidationResult(!result);
       return !result;
     }
   );
 
   const isInputToggleable = (type: string) =>
-    type === 'checkbox' || type === 'radio';
+    type === 'checkbox' || type === 'button' || type === 'radio';
 
   // watch for external parent data changes in self
   useEffect(() => {
@@ -164,7 +151,8 @@ export const useFormInput = <T extends { [key: string]: string | boolean }>({
     const { checked } = e.currentTarget;
     const inputValue = e.currentTarget.value;
 
-    const newValue = inputType === 'checkbox' ? checked : inputValue;
+    const newValue =
+      inputType === 'checkbox' || inputType === 'button' ? checked : inputValue;
 
     const newFormData = {
       ...(formData as any),
@@ -232,14 +220,17 @@ export const useFormInput = <T extends { [key: string]: string | boolean }>({
     ...(showError && helperTextObj),
     ...(showError && invalidAttr),
     name,
-    onBlur: handleValueAccepted(true),
+    // we don't invoke the submit handler on blur if we are disconnected from a form and the input is a checkbox or radio button.
+    onBlur: handleValueAccepted(
+      !!formRef.current || !isInputToggleable(inputType)
+    ),
     onChange: handleChange,
     onKeyPress: handleKeyPress,
     type: inputType,
     [FORMALIZER_ID_DATA_ATTRIBUTE]: inputUniqueIdRef.current
   };
 
-  if (inputType === 'checkbox') {
+  if (inputType === 'checkbox' || inputType === 'button') {
     inputAttr.checked = typeof value === 'boolean' ? value : false;
   } else if (inputType === 'radio') {
     inputAttr.value = inputValueAttributeVal;

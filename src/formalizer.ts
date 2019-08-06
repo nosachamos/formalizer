@@ -61,13 +61,15 @@ type ValidationErrorUpdater = (
   errorMessage?: string
 ) => void;
 
+export type SupportedInputTypes = 'text' | 'checkbox' | 'radio' | 'button';
+
 export interface FormInputParams<T> {
   name: string;
   formHandler: [T, Dispatch<SetStateAction<T>>];
   formRef: MutableRefObject<HTMLFormElement | null>;
   updateError: ValidationErrorUpdater;
   invalidAttr?: object;
-  inputType: string;
+  inputType: SupportedInputTypes;
   inputValueAttributeVal?: string;
   submitHandler?: FormSubmitHandler<T>;
   validation: Array<InputValidation<T>>;
@@ -201,7 +203,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
     name: string,
     inputValueAttributeVal: string | undefined,
     validationConfigs: Array<InputValidation<T>> = [],
-    inputType: string
+    inputType: SupportedInputTypes
   ) => {
     const formInputData = useFormInput<T>({
       formHandler,
@@ -246,6 +248,11 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
     name: string,
     validationConfigs?: Array<InputValidation<T>>
   ) => useInputHandler(name, undefined, validationConfigs, 'checkbox');
+
+  const useToggleInput = (
+    name: string,
+    validationConfigs?: Array<InputValidation<T>>
+  ) => useInputHandler(name, undefined, validationConfigs, 'button');
 
   const useRadioInput = (
     name: string,
@@ -311,6 +318,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
     setValues: externalSetValues,
     useCheckboxInput,
     useInput,
-    useRadioInput
+    useRadioInput,
+    useToggleInput
   };
 };
