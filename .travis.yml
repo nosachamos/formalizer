@@ -7,6 +7,6 @@ cache:
 before_install:
   - npm update
 install:
-  - npm install -g codecov
+  - npm install -g codecov jest
 script:
   - npm run test:coverage
