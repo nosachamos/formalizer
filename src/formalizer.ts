@@ -19,6 +19,10 @@ export const FormalizerSettings: FormalizerSettingsType = {
   invalidAttr: { error: true }
 };
 
+export type SingleErrorPerInput = { [key: string]: string };
+export type ErrorByValidatorKey = { [key: string]: string };
+export type MultipleErrorsPerInput = { [key: string]: ErrorByValidatorKey };
+
 export const GlobalValidators: {
   [key: string]: InputValidationConfig<any> | string;
 } = {
@@ -53,27 +57,40 @@ export interface InputValidationByKey<T> {
   [key: string]: InputValidationConfig<T> | string;
 }
 
+export type ValidationSettings = {
+  reportMultipleErrors?: boolean;
+};
+
 type InputValidation<T> = InputValidationConfig<T> | string;
 
-type ValidationErrorUpdater = (
+export type ValidationErrorCleaner = (
   name: string,
-  unmetRuleKey?: string,
-  errorMessage?: string
+  reportMultipleErrors: boolean,
+  ruleKey?: string
+) => void;
+
+export type ValidationErrorReporter = (
+  name: string,
+  reportMultipleErrors: boolean,
+  ruleKey: string,
+  errorMessage: string
 ) => void;
 
 export type SupportedInputTypes = 'text' | 'checkbox' | 'radio' | 'button';
 
-export interface FormInputParams<T> {
+export interface FormInputParams<T, I> {
   name: string;
   formHandler: [T, Dispatch<SetStateAction<T>>];
   formRef: MutableRefObject<HTMLFormElement | null>;
-  updateError: ValidationErrorUpdater;
+  clearError: ValidationErrorCleaner;
+  reportError: ValidationErrorReporter;
   invalidAttr?: object;
-  inputType: SupportedInputTypes;
+  inputType: I;
   inputValueAttributeVal?: string;
   submitHandler?: FormSubmitHandler<T>;
   validation: Array<InputValidation<T>>;
   helperTextAttr?: string;
+  validationSettings?: ValidationSettings;
 }
 
 export interface FormInputData {
@@ -96,6 +113,7 @@ export interface InputAttributes {
 
 export interface Options<T> {
   [key: string]: any;
+
   formData: T;
 }
 
@@ -130,7 +148,9 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
     : FormalizerSettings;
 
   const formHandler = useState<T>(initialValues ? initialValues : ({} as any));
-  const errorHandler = useState<{ [key: string]: string }>({});
+  const errorHandler = useState<SingleErrorPerInput | MultipleErrorsPerInput>(
+    {}
+  );
   const [mounted, setMounted] = useState(false);
 
   /**
@@ -146,21 +166,46 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
   const [values, setValues] = formHandler;
   const [errors, setErrors] = errorHandler;
 
-  // initial mounted flag
-  useEffect(() => setMounted(true), []);
-
-  const updateError = (
+  const clearError = (
     name: string,
-    unmetRule?: string,
-    errorMessage?: string
+    reportMultipleErrors: boolean,
+    unmetRuleKey?: string
   ) => {
-    if (!unmetRule) {
-      delete errors[name];
+    if (reportMultipleErrors && unmetRuleKey) {
+      const errorForInput = errors[name] as ErrorByValidatorKey | undefined;
+      if (errorForInput) {
+        delete errorForInput[unmetRuleKey];
+      }
     } else {
-      errors[name] = errorMessage as string;
+      delete errors[name];
     }
     setErrors(errors);
   };
+
+  const reportError = (
+    name: string,
+    reportMultipleErrors: boolean,
+    unmetRuleKey: string,
+    errorMessage: string
+  ) => {
+    if (reportMultipleErrors) {
+      let errorsForInput = errors[name] as ErrorByValidatorKey;
+
+      if (!errorsForInput) {
+        errorsForInput = {} as ErrorByValidatorKey;
+        errors[name] = errorsForInput;
+      }
+
+      errorsForInput[unmetRuleKey] = errorMessage;
+    } else {
+      errors[name] = errorMessage;
+    }
+
+    setErrors(errors);
+  };
+
+  // initial mounted flag
+  useEffect(() => setMounted(true), []);
 
   if (formRef && formRef.current) {
     if (!formRef.current.formValidationIdAttr) {
@@ -199,13 +244,15 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
     return mounted && !Object.values(errors).length; // no errors found
   };
 
-  const useInputHandler = (
+  const useInputHandler = <I extends SupportedInputTypes>(
     name: string,
     inputValueAttributeVal: string | undefined,
     validationConfigs: Array<InputValidation<T>> = [],
-    inputType: SupportedInputTypes
+    inputType: I,
+    validationSettings?: ValidationSettings
   ) => {
-    const formInputData = useFormInput<T>({
+    const formInputData = useFormInput<T, typeof inputType>({
+      clearError,
       formHandler,
       formRef,
       helperTextAttr,
@@ -213,8 +260,9 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
       inputValueAttributeVal,
       invalidAttr,
       name,
+      validationSettings,
       submitHandler,
-      updateError,
+      reportError,
       validation: validationConfigs
     });
 
@@ -241,24 +289,28 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
 
   const useInput = (
     name: string,
-    validationConfigs?: Array<InputValidation<T>>
-  ) => useInputHandler(name, undefined, validationConfigs, 'text');
+    validationConfigs?: Array<InputValidation<T>>,
+    options?: ValidationSettings
+  ) => useInputHandler(name, undefined, validationConfigs, 'text', options);
 
   const useCheckboxInput = (
     name: string,
-    validationConfigs?: Array<InputValidation<T>>
-  ) => useInputHandler(name, undefined, validationConfigs, 'checkbox');
+    validationConfigs?: Array<InputValidation<T>>,
+    options?: ValidationSettings
+  ) => useInputHandler(name, undefined, validationConfigs, 'checkbox', options);
 
   const useToggleInput = (
     name: string,
-    validationConfigs?: Array<InputValidation<T>>
-  ) => useInputHandler(name, undefined, validationConfigs, 'button');
+    validationConfigs?: Array<InputValidation<T>>,
+    options?: ValidationSettings
+  ) => useInputHandler(name, undefined, validationConfigs, 'button', options);
 
   const useRadioInput = (
     name: string,
     value: string,
-    validationConfigs?: Array<InputValidation<T>>
-  ) => useInputHandler(name, value, validationConfigs, 'radio');
+    validationConfigs?: Array<InputValidation<T>>,
+    options?: ValidationSettings
+  ) => useInputHandler(name, value, validationConfigs, 'radio', options);
 
   const formSubmitHandler = (e: Event) => {
     // first validate the form

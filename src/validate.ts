@@ -6,6 +6,7 @@ import {
   InputValidationConfig,
   ValidatorFunction
 } from './formalizer';
+import { ValidationResult } from './use-form-input';
 
 // apparently can't import a type from an optional dependency, so use "any" until this is resolved.
 // https://stackoverflow.com/questions/52795354/how-to-use-a-type-from-an-optional-dependency-in-a-declaration-file
@@ -63,7 +64,11 @@ export const validate = <T>(
   value: any,
   validation: InputValidationByKey<T>,
   formData: T
-) => {
+): ValidationResult => {
+  const result = {
+    errors: []
+  } as ValidationResult;
+
   const fieldsToValidate: Array<InputValidationConfig<T>> = [];
 
   Object.keys(validation).forEach(property => {
@@ -166,10 +171,11 @@ export const validate = <T>(
 
   let unmetValidationKey: string | undefined = void 0;
   let errorMessage: string | ErrorMessageFunction<T> | undefined = void 0;
-  let isValid = true;
 
   for (const validationConfig of fieldsToValidate) {
+    let isValid = true;
     const property = validationConfig.key;
+
     const configs: InputValidationConfig<T> = validationConfig;
 
     if (!configs.options) {
@@ -200,16 +206,17 @@ export const validate = <T>(
       isValid = !isValid;
     }
 
-    if (!isValid) {
+    if (!isValid && property) {
       unmetValidationKey = property;
       errorMessage = getErrorMessage(
         validationConfig.errorMessage,
         value,
         formData
       );
-      break;
+
+      result.errors.push({ key: unmetValidationKey, errorMessage });
     }
   }
 
-  return isValid ? undefined : [unmetValidationKey, errorMessage];
+  return result;
 };

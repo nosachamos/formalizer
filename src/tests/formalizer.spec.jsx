@@ -1684,6 +1684,8 @@ describe('Form Validation', () => {
       formInfo.setValues({ field1: 'updated', field2: 'testValue updated' });
     });
 
+    wrapper.update();
+
     expect(formInfo.isValid).toBe(true);
     expect(submitHandler).not.toHaveBeenCalled();
     expect(formInfo.errors.field1).toEqual(undefined);

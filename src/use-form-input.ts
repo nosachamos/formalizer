@@ -5,24 +5,34 @@ import {
   InputAttributes,
   InputValidationByKey,
   InputValidationConfig,
-  isInputValidationConfig
+  isInputValidationConfig,
+  SupportedInputTypes
 } from './formalizer';
 import { validate } from './validate';
 
 export const FORMALIZER_ID_DATA_ATTRIBUTE = 'data-formalizer-id';
 
-export const useFormInput = <T extends { [key: string]: string | boolean }>({
+export interface ValidationResult {
+  errors: { key: string; errorMessage: string }[];
+}
+
+export const useFormInput = <
+  T extends { [key: string]: string | boolean },
+  I extends SupportedInputTypes
+>({
   name,
   formHandler,
   formRef,
   validation = [],
-  updateError,
+  clearError,
+  reportError,
   invalidAttr = {},
-  inputType = 'text',
+  inputType,
   submitHandler,
   helperTextAttr,
-  inputValueAttributeVal
-}: FormInputParams<T>): FormInputData => {
+  inputValueAttributeVal,
+  validationSettings
+}: FormInputParams<T, I>): FormInputData => {
   const [formData, setFormData] = formHandler;
   const formValue = formData[name] as any;
   const [value, setValue] = useState<any>(formValue);
@@ -47,7 +57,8 @@ export const useFormInput = <T extends { [key: string]: string | boolean }>({
       invokeSubmitHandler: boolean,
       inputIsTouched: boolean
     ): boolean => {
-      let result: Array<string | undefined> | undefined;
+      let result: ValidationResult;
+      let hasErrors = false;
 
       if (inputIsTouched) {
         let validationToProcess: Array<string | InputValidationConfig<T>>;
@@ -74,14 +85,17 @@ export const useFormInput = <T extends { [key: string]: string | boolean }>({
           }
         }
 
-        for (const v of validationToProcess) {
-          let validationConfig: InputValidationByKey<T> | undefined = void 0;
+        const reportMultipleErrors = !!(
+          validationSettings && validationSettings.reportMultipleErrors === true
+        );
 
+        let validationConfig: InputValidationByKey<T> = {};
+        for (const v of validationToProcess) {
           // if this is a string the user has just requested a validation by name, such as `isRequired`. Otherwise, user
           // has provided a validation config, so use that.
 
           if (typeof v === 'string') {
-            validationConfig = { [v]: {} };
+            validationConfig[v] = {};
           } else {
             let key: string;
             if (!v.key) {
@@ -92,43 +106,64 @@ export const useFormInput = <T extends { [key: string]: string | boolean }>({
             } else {
               key = v.key;
             }
-            validationConfig = { [key]: v };
-          }
-
-          result = validate(inputValue, validationConfig, currentFormData);
-
-          setIsValid(!result);
-          if (result) {
-            // stop on the first error - we only show one at a time.
-            break;
+            validationConfig[key] = v;
           }
         }
-      }
 
-      if (!!result) {
-        const [unmetRuleKey, errorMessage] = result;
-        setHelperText(errorMessage);
+        result = validate(inputValue, validationConfig, currentFormData);
 
-        // show error for this input
-        updateError(name, unmetRuleKey, errorMessage);
+        if (result.errors && result.errors.length > 0) {
+          for (let error of result.errors) {
+            if (error.errorMessage) {
+              hasErrors = true;
+              setHelperText(error.errorMessage);
+
+              // show error for this input
+              reportError(
+                name,
+                reportMultipleErrors,
+                error.key,
+                error.errorMessage
+              );
+
+              if (!reportMultipleErrors) {
+                // stop on the first error - we only show one at a time.
+                break;
+              }
+            } else {
+              // clearing the error
+              clearError(name, reportMultipleErrors, error.key);
+            }
+          }
+        } else {
+          // no errors, clear everything for this input
+          clearError(name, false);
+        }
       } else {
-        // if form is not connected, and we have a submit handler, we call it every time validation passes. Otherwise
-        // we do nothing here.
-        if (!formRef.current && inputIsTouched && invokeSubmitHandler) {
-          if (submitHandler) {
-            submitHandler(currentFormData);
-          }
-        }
-
-        // clearing the error
-        updateError(name);
+        // if component isn't touched, clear errors
+        clearError(name, false);
       }
 
-      return !result;
+      // if form is not connected, and we have a submit handler, we call it every time validation passes. Otherwise
+      // we do nothing here.
+      if (
+        !formRef.current &&
+        !hasErrors &&
+        inputIsTouched &&
+        invokeSubmitHandler
+      ) {
+        if (submitHandler) {
+          submitHandler(currentFormData);
+        }
+      }
+
+      setIsValid(!hasErrors);
+
+      return !hasErrors;
     }
   );
 
-  const isInputToggleable = (type: string) =>
+  const isInputToggleable = <I extends SupportedInputTypes>(type: I) =>
     type === 'checkbox' || type === 'button' || type === 'radio';
 
   // watch for external parent data changes in self
