@@ -94,7 +94,7 @@ export interface FormInputParams<T, I> {
   inputType: I;
   inputValueAttributeVal?: string;
   submitHandler?: FormSubmitHandler<T>;
-  validation: Array<InputValidation<T>>;
+  validation: Array<InputValidation<T>> | string;
   helperTextAttr?: string;
   validationSettings?: ValidationSettings;
 }
@@ -259,7 +259,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
   const useInputHandler = <I extends SupportedInputTypes>(
     name: string,
     inputValueAttributeVal: string | undefined,
-    validationConfigs: Array<InputValidation<T>> = [],
+    validationConfigs: Array<InputValidation<T>> | string = [],
     inputType: I,
     validationSettings?: ValidationSettings
   ) => {
@@ -301,26 +301,26 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
 
   const useInput = (
     name: string,
-    validationConfigs?: Array<InputValidation<T>>,
+    validationConfigs?: Array<InputValidation<T>> | string,
     options?: ValidationSettings
   ) => useInputHandler(name, undefined, validationConfigs, 'text', options);
 
   const useCheckboxInput = (
     name: string,
-    validationConfigs?: Array<InputValidation<T>>,
+    validationConfigs?: Array<InputValidation<T>> | string,
     options?: ValidationSettings
   ) => useInputHandler(name, undefined, validationConfigs, 'checkbox', options);
 
   const useToggleInput = (
     name: string,
-    validationConfigs?: Array<InputValidation<T>>,
+    validationConfigs?: Array<InputValidation<T>> | string,
     options?: ValidationSettings
   ) => useInputHandler(name, undefined, validationConfigs, 'button', options);
 
   const useRadioInput = (
     name: string,
     value: string,
-    validationConfigs?: Array<InputValidation<T>>,
+    validationConfigs?: Array<InputValidation<T>> | string,
     options?: ValidationSettings
   ) => useInputHandler(name, value, validationConfigs, 'radio', options);
 
