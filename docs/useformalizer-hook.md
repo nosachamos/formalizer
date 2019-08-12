@@ -134,7 +134,7 @@ const EmailFormComponent = () => {
 };
 ```
 
-#### Getting all errors at once
+## Getting all errors at once
 
 By default when an input fails a validation, the validation is aborted and subsequent validators do not run. This allows for a simpler error reporting, and is the desired behavior in the majority of the use cases.
 
