@@ -166,7 +166,9 @@ export const useFormInput = <
   );
 
   const isInputToggleable = (type: SupportedInputTypes) =>
-    type === 'checkbox' || type === 'button' || type === 'radio';
+    type === 'checkbox' ||
+    type === undefined || // toggle buttons
+    type === 'radio';
 
   // watch for external parent data changes in self
   useEffect(() => {
@@ -195,7 +197,9 @@ export const useFormInput = <
     const inputValue = e.currentTarget.value;
 
     const newValue =
-      inputType === 'checkbox' || inputType === 'button' ? checked : inputValue;
+      inputType === 'checkbox' || inputType === undefined
+        ? checked
+        : inputValue;
 
     const newFormData = {
       ...(formData as any),
@@ -278,7 +282,10 @@ export const useFormInput = <
     inputAttr.type = inputType;
   }
 
-  if (inputType === 'checkbox' || inputType === 'button') {
+  if (
+    inputType === 'checkbox' ||
+    inputType === undefined /* toggle inputs have undefined type attribute */
+  ) {
     inputAttr.checked = typeof value === 'boolean' ? value : false;
   } else if (inputType === 'radio') {
     inputAttr.value = inputValueAttributeVal;

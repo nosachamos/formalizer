@@ -752,8 +752,6 @@ describe('Form Validation', () => {
       const field1Errors = formInfo.errors['field1'];
       expect(field1Errors).not.toBeNull();
 
-      console.dir(field1Errors);
-
       expect(Object.keys(field1Errors).length).toBe(1);
 
       expect(field1Errors['mustContainLetterZ']).not.toBeNull();
