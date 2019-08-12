@@ -8,6 +8,7 @@ import {
   useState
 } from 'react';
 import { FORMALIZER_ID_DATA_ATTRIBUTE, useFormInput } from './use-form-input';
+import * as React from 'react';
 
 interface FormalizerSettingsType {
   invalidAttr?: { [key: string]: any };
@@ -108,7 +109,7 @@ export interface InputAttributes {
   value?: any;
   checked?: boolean;
   name: string;
-  onKeyPress: (e: KeyboardEvent) => void;
+  onKeyPress: (e: React.KeyboardEvent<HTMLDivElement> | KeyboardEvent) => void;
   onChange: (e: FormEvent<any>) => void;
   onBlur: () => any;
   helperTextObj?: { [key: string]: string };

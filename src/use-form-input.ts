@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import {
   FormInputData,
@@ -233,7 +234,9 @@ export const useFormInput = <
   };
 
   // we handle key presses and trigger validations if Enter was pressed
-  const handleKeyPress = (e: KeyboardEvent) => {
+  const handleKeyPress = (
+    e: React.KeyboardEvent<HTMLDivElement> | KeyboardEvent
+  ) => {
     // We attempt to use keyCode first so that we work properly on IE 11 and lower. If that's
     // not available, use the which property. Finally, if that's not available, use the newer key instead.
     if (
