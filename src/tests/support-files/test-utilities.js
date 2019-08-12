@@ -1,8 +1,11 @@
 import React from 'react';
+import { act } from '@testing-library/react';
 
 export const typeIntoInput = (input, value) => {
-  input.instance().value = value;
-  input.simulate('change', { target: { value: value } });
+  act(() => {
+    input.instance().value = value;
+    input.simulate('change', { target: { value: value } });
+  });
 };
 
 export const performAssertions = (
@@ -58,12 +61,40 @@ export const buildDisconnectedForm = (
   </>
 );
 
-export const buildTestForm = (formInfo, field1Validation, field2Validation) => (
+export const buildTestForm = (
+  formInfo,
+  field1Validation,
+  field2Validation,
+  field1ValidationSettings = {},
+  field2ValidationSettings = {}
+) => (
   <form ref={formInfo.formRef}>
-    <input name="field1" {...formInfo.useInput('field1', field1Validation)} />
-    <span id="field1Error">{formInfo.errors['field1']}</span>
-    <input name="field2" {...formInfo.useInput('field2', field2Validation)} />
-    <span id="field2Error">{formInfo.errors['field2']}</span>
+    <input
+      name="field1"
+      {...formInfo.useInput(
+        'field1',
+        field1Validation,
+        field1ValidationSettings
+      )}
+    />
+    <span id="field1Error">
+      {field1ValidationSettings.reportMultipleErrors
+        ? undefined
+        : formInfo.errors['field1']}
+    </span>
+    <input
+      name="field2"
+      {...formInfo.useInput(
+        'field2',
+        field2Validation,
+        field2ValidationSettings
+      )}
+    />
+    <span id="field2Error">
+      {field2ValidationSettings.reportMultipleErrors
+        ? undefined
+        : formInfo.errors['field2']}
+    </span>
 
     <button
       data-test="form-submit-button"

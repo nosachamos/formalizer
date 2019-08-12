@@ -102,7 +102,9 @@ export const useFormInput = <
               key =
                 typeof v.validator === 'string'
                   ? v.validator // if the validator is a string, use that as a string
-                  : (key = '' + Math.random()); // no key given, so generate one
+                  : (key = Math.random()
+                      .toString(36)
+                      .substr(2, 9)); // no key given, so generate one
             } else {
               key = v.key;
             }

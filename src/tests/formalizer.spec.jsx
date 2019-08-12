@@ -687,6 +687,91 @@ describe('Form Validation', () => {
     );
   });
 
+  it('Can use validation settings to report all errors for a given input at once', () => {
+    const FormWrapper = () => {
+      formInfo = useFormalizer(submitHandler, { field1: 'test', field2: '' });
+      return buildTestForm(
+        formInfo,
+        [
+          'isRequired',
+          {
+            key: 'mustContainLetterZ',
+            errorMessage: 'Field does not contain letter z',
+            validator: value => {
+              return value.length > 1 && value.indexOf('z') > -1;
+            }
+          },
+          {
+            key: 'mustContainLetterA',
+            errorMessage: 'Field does not contain letter a',
+            validator: value => {
+              return value.length > 1 && value.indexOf('a') > -1;
+            }
+          }
+        ],
+        [],
+        {
+          reportMultipleErrors: true // <-- turning on multiple error reporting for field1
+        }
+      );
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    act(() => {
+      wrapper.find('[data-test="force-validation-button"]').simulate('click');
+    });
+
+    {
+      expect(formInfo.isValid).toBe(false);
+      expect(Object.keys(formInfo.errors).length).toBe(1); // only errors for field 1
+
+      const field1Errors = formInfo.errors['field1'];
+      expect(field1Errors).not.toBeNull();
+      expect(Object.keys(field1Errors).length).toBe(2);
+
+      expect(field1Errors['mustContainLetterZ']).not.toBeNull();
+      expect(field1Errors['mustContainLetterZ']).toEqual(
+        'Field does not contain letter z'
+      );
+      expect(field1Errors['mustContainLetterA']).not.toBeNull();
+      expect(field1Errors['mustContainLetterA']).toEqual(
+        'Field does not contain letter a'
+      );
+    }
+
+    // now we clear the field, and the 'isRequired' error should also be reported
+    typeIntoInput(wrapper.find('[name="field1"]'), '');
+
+    {
+      expect(formInfo.isValid).toBe(false);
+      expect(Object.keys(formInfo.errors).length).toBe(1);
+
+      const field1Errors = formInfo.errors['field1'];
+      expect(field1Errors).not.toBeNull();
+      expect(Object.keys(field1Errors).length).toBe(3);
+
+      expect(field1Errors['isRequired']).not.toBeNull();
+      expect(field1Errors['isRequired']).toEqual('This field is required.');
+      expect(field1Errors['mustContainLetterZ']).not.toBeNull();
+      expect(field1Errors['mustContainLetterZ']).toEqual(
+        'Field does not contain letter z'
+      );
+      expect(field1Errors['mustContainLetterA']).not.toBeNull();
+      expect(field1Errors['mustContainLetterA']).toEqual(
+        'Field does not contain letter a'
+      );
+    }
+
+    // typing a valid value now
+    typeIntoInput(wrapper.find('[name="field1"]'), 'test az');
+
+    expect(formInfo.isValid).toBe(true);
+    expect(Object.keys(formInfo.errors).length).toBe(0);
+  });
+
   it('Custom validator function mixed with built in validator by key can be provided together', () => {
     const FormWrapper = () => {
       formInfo = useFormalizer(submitHandler, { field1: '', field2: '' });

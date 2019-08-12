@@ -140,6 +140,48 @@ By default when an input fails a validation, the validation is aborted and subse
 
 A typical value contained by the `errors` object is as follows:
 
+```jsx
+{
+  "password": "This field is required."
+}
+```
+
 However, in certain situations it is useful to obtain a complete report of all the validations not met by each input. For example, imagine a password strength validation control. You may want to let the user know all the requirements not currently met all at once, instead of just the next one.
 
-To accomplish this you may set the `reportMultipleErrors` setting to `true`.
+To accomplish this you may set the `reportMultipleErrors` setting to `true`:
+
+```jsx
+const validations = [
+  'isRequired', // for built-in and global validators, their name is used when reporting errors
+  {
+    key: 'mustHaveALetter', // <-- for custom validations, the key attribute is used when reporting errors
+    errorMessage: 'Must have at least one letter',
+    validator: value => {
+      return value.length > 1 && value.match(/[a-z]/i);
+    }
+  },
+  {
+    // if no key attribute is given, a random one is generated for you and will appear when errors are reported
+    errorMessage: 'Must have at least one number',
+    validator: value => {
+      return value.length > 1 && value.match(/[0-9]/);
+    }
+  }
+];
+
+<input
+  {...useInput('password', validations, { reportMultipleErrors: true })}
+/>;
+```
+
+With this setting, all errors for the input will be reported at once:
+
+```jsx
+{
+  "password": {
+    "isRequired": "This field is required.",
+    "mustHaveALetter": "Must have at least one letter",
+    "err5sXd4": "Must have at least one number", // note the random key. This is because no key was given for this validator.
+  }
+}
+```
