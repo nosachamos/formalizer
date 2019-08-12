@@ -28,7 +28,7 @@
     "build:copy-types": "cp .tmp/*.d.ts build",
     "prepare": "run-s prepare:*",
     "prepare:generate-barrels": "barrelsby --directory src --singleQuotes --delete",
-    "prepare:generate-changelog": "auto-changelog -p",
+    "prepare:generate-changelog": "auto-changelog -p --ignore-commit-pattern \"update changelog, fix linting, regenerate barrels\"",
     "prepare:synk": "snyk protect",
     "prepare:prettier": "prettier \"src/**/*.ts\" --write --print-width=120",
     "prepare:tslint": "tslint --fix --project .",
