@@ -184,7 +184,7 @@ export const useFormInput = <
   }, [formValue, value]);
 
   // rewrite self and parent's value
-  const handleChange = <E extends FormEvent<HTMLInputElement>>(e: E): void => {
+  const handleChange = (e: FormEvent<any>): void => {
     const { checked } = e.currentTarget;
     const inputValue = e.currentTarget.value;
 
