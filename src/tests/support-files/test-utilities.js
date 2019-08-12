@@ -46,18 +46,61 @@ export const performAssertions = (
 export const buildDisconnectedForm = (
   formInfo,
   field1Validation,
-  field2Validation
+  field2Validation,
+  validationSettings
 ) => (
   <>
-    <input name="field1" {...formInfo.useInput('field1', field1Validation)} />
+    <input
+      data-test={'field1-input'}
+      name="field1"
+      {...formInfo.useInput('field1', field1Validation, validationSettings)}
+    />
     <span id="field1Error">{formInfo.errors['field1']}</span>
-    <input name="field2" {...formInfo.useInput('field2', field2Validation)} />
+    <input
+      data-test={'field2-input'}
+      name="field2"
+      {...formInfo.useInput('field2', field2Validation, validationSettings)}
+    />
     <span id="field2Error">{formInfo.errors['field2']}</span>
-    <input {...formInfo.useCheckboxInput('checkboxField')} />
-    <input type={'button'} {...formInfo.useToggleInput('toggleField')} />
-    <input {...formInfo.useRadioInput('radioField', 'a')} />
-    <input {...formInfo.useRadioInput('radioField', 'b')} />
-    <input {...formInfo.useRadioInput('radioField', 'c')} />
+    <input
+      data-test={'checkbox-input'}
+      {...formInfo.useCheckboxInput(
+        'checkboxField',
+        undefined,
+        validationSettings
+      )}
+    />
+    <input
+      data-test={'toggle-input'}
+      {...formInfo.useToggleInput('toggleField', undefined, validationSettings)}
+    />
+    <input
+      data-test={'radio-input-a'}
+      {...formInfo.useRadioInput(
+        'radioField',
+        'a',
+        undefined,
+        validationSettings
+      )}
+    />
+    <input
+      data-test={'radio-input-b'}
+      {...formInfo.useRadioInput(
+        'radioField',
+        'b',
+        undefined,
+        validationSettings
+      )}
+    />
+    <input
+      data-test={'radio-input-c'}
+      {...formInfo.useRadioInput(
+        'radioField',
+        'c',
+        undefined,
+        validationSettings
+      )}
+    />
   </>
 );
 

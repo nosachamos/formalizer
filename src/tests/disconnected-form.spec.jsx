@@ -190,6 +190,39 @@ describe('Disconnected form validation', () => {
     expect(wrapper.find('[type="button"]').props().checked).toBe(true);
   });
 
+  it(`Inputs come without a type attribute if we set the omitTypeAttribute setting to true.`, () => {
+    const FormWrapper = () => {
+      formInfo = useFormalizer(null, {
+        field1: '',
+        field2: '',
+        toggleField: true
+      });
+
+      return buildDisconnectedForm(formInfo, undefined, undefined, {
+        omitTypeAttribute: true
+      });
+    };
+
+    wrapper = mount(<FormWrapper />);
+
+    expect(formInfo.isValid).toBe(true);
+
+    // fields were properly mounted and can be found
+    expect(wrapper.find('[data-test="field1-input"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="field2-input"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="checkbox-input"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="toggle-input"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="radio-input-a"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="radio-input-b"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="radio-input-c"]').exists()).toBe(true);
+
+    // but none of them had the type attribute set
+    expect(wrapper.find('[type="button"]').exists()).toBe(false);
+    expect(wrapper.find('[type="radio"]').exists()).toBe(false);
+    expect(wrapper.find('[type="text"]').exists()).toBe(false);
+    expect(wrapper.find('[type="checkbox"]').exists()).toBe(false);
+  });
+
   it(`If no form is connected, errors are still raised even if no submitHandler is given.`, () => {
     const FormWrapper = () => {
       formInfo = useFormalizer(null, {

@@ -65,6 +65,7 @@ export interface InputValidationByKey<T> {
 
 export interface ValidationSettings {
   reportMultipleErrors?: boolean;
+  omitTypeAttribute?: boolean;
 }
 
 type InputValidation<T> = InputValidationConfig<T> | string;
@@ -82,12 +83,7 @@ export type ValidationErrorReporter = (
   errorMessage: string
 ) => void;
 
-export type SupportedInputTypes =
-  | 'text'
-  | 'checkbox'
-  | 'radio'
-  | 'button'
-  | undefined;
+export type SupportedInputTypes = 'text' | 'checkbox' | 'radio' | 'button';
 
 export interface FormInputParams<T, I> {
   name: string;
@@ -96,7 +92,7 @@ export interface FormInputParams<T, I> {
   clearError: ValidationErrorCleaner;
   reportError: ValidationErrorReporter;
   invalidAttr?: object;
-  inputType?: I;
+  inputType: I;
   inputValueAttributeVal?: string;
   submitHandler?: FormSubmitHandler<T>;
   validation: Array<InputValidation<T>> | string;
@@ -113,14 +109,8 @@ export interface InputAttributes<I extends SupportedInputTypes> {
   value?: any;
   checked?: boolean;
   name: string;
-  onKeyPress: (e: React.KeyboardEvent<HTMLDivElement> | KeyboardEvent) => void;
-  onChange: (
-    e:
-      | React.ChangeEvent<
-          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-        >
-      | FormEvent<any>
-  ) => void;
+  onKeyPress: (e: React.KeyboardEvent<any> | KeyboardEvent) => void;
+  onChange: (e: React.ChangeEvent<any> | FormEvent<any>) => void;
   onBlur: () => any;
   helperTextObj?: { [key: string]: string };
   invalidAttr?: object;
@@ -324,7 +314,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
     name: string,
     validationConfigs?: Array<InputValidation<T>> | string,
     options?: ValidationSettings
-  ) => useInputHandler(name, undefined, validationConfigs, undefined, options);
+  ) => useInputHandler(name, undefined, validationConfigs, 'button', options);
 
   const useRadioInput = (
     name: string,

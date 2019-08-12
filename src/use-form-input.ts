@@ -167,7 +167,7 @@ export const useFormInput = <
 
   const isInputToggleable = (type: SupportedInputTypes) =>
     type === 'checkbox' ||
-    type === undefined || // toggle buttons
+    type === 'button' || // toggle buttons
     type === 'radio';
 
   // watch for external parent data changes in self
@@ -186,20 +186,12 @@ export const useFormInput = <
   }, [formValue, value]);
 
   // rewrite self and parent's value
-  const handleChange = (
-    e:
-      | React.ChangeEvent<
-          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-        >
-      | FormEvent<any>
-  ): void => {
+  const handleChange = (e: React.ChangeEvent<any> | FormEvent<any>): void => {
     const { checked } = e.currentTarget;
     const inputValue = e.currentTarget.value;
 
     const newValue =
-      inputType === 'checkbox' || inputType === undefined
-        ? checked
-        : inputValue;
+      inputType === 'checkbox' || inputType === 'button' ? checked : inputValue;
 
     const newFormData = {
       ...(formData as any),
@@ -243,9 +235,7 @@ export const useFormInput = <
   };
 
   // we handle key presses and trigger validations if Enter was pressed
-  const handleKeyPress = (
-    e: React.KeyboardEvent<HTMLDivElement> | KeyboardEvent
-  ) => {
+  const handleKeyPress = (e: React.KeyboardEvent<any> | KeyboardEvent) => {
     // We attempt to use keyCode first so that we work properly on IE 11 and lower. If that's
     // not available, use the which property. Finally, if that's not available, use the newer key instead.
     if (
@@ -278,13 +268,13 @@ export const useFormInput = <
     [FORMALIZER_ID_DATA_ATTRIBUTE]: inputUniqueIdRef.current
   };
 
-  if (inputType) {
+  if (!validationSettings || validationSettings.omitTypeAttribute !== true) {
     inputAttr.type = inputType;
   }
 
   if (
     inputType === 'checkbox' ||
-    inputType === undefined /* toggle inputs have undefined type attribute */
+    inputType === 'button' /* toggle inputs have undefined type attribute */
   ) {
     inputAttr.checked = typeof value === 'boolean' ? value : false;
   } else if (inputType === 'radio') {
