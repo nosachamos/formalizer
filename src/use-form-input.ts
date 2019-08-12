@@ -13,7 +13,7 @@ import { validate } from './validate';
 export const FORMALIZER_ID_DATA_ATTRIBUTE = 'data-formalizer-id';
 
 export interface ValidationResult {
-  errors: Array<{ key: string; errorMessage: string }>;
+  errors: Array<{ key: string; errorMessage?: string }>;
 }
 
 export const useFormInput = <

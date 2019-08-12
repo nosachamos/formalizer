@@ -743,6 +743,26 @@ describe('Form Validation', () => {
     }
 
     // now we clear the field, and the 'isRequired' error should also be reported
+    typeIntoInput(wrapper.find('[name="field1"]'), 'test a');
+
+    {
+      expect(formInfo.isValid).toBe(false);
+      expect(Object.keys(formInfo.errors).length).toBe(1);
+
+      const field1Errors = formInfo.errors['field1'];
+      expect(field1Errors).not.toBeNull();
+
+      console.dir(field1Errors);
+
+      expect(Object.keys(field1Errors).length).toBe(1);
+
+      expect(field1Errors['mustContainLetterZ']).not.toBeNull();
+      expect(field1Errors['mustContainLetterZ']).toEqual(
+        'Field does not contain letter z'
+      );
+    }
+
+    // now we clear the field, and the 'isRequired' error should also be reported
     typeIntoInput(wrapper.find('[name="field1"]'), '');
 
     {

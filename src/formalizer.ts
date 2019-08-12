@@ -181,12 +181,16 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
   const clearError = (
     name: string,
     reportMultipleErrors: boolean,
-    unmetRuleKey?: string
+    key?: string
   ) => {
-    if (reportMultipleErrors && unmetRuleKey) {
+    if (reportMultipleErrors && key) {
       const errorForInput = errors[name] as ErrorByValidatorKey | undefined;
       if (errorForInput) {
-        delete errorForInput[unmetRuleKey];
+        delete errorForInput[key];
+
+        if (Object.keys(errorForInput).length === 0) {
+          delete errors[name];
+        }
       }
     } else {
       delete errors[name];

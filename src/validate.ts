@@ -206,15 +206,19 @@ export const validate = <T>(
       isValid = !isValid;
     }
 
-    if (!isValid && property) {
-      unmetValidationKey = property;
-      errorMessage = getErrorMessage(
-        validationConfig.errorMessage,
-        value,
-        formData
-      );
+    if (property) {
+      if (!isValid) {
+        unmetValidationKey = property;
+        errorMessage = getErrorMessage(
+          validationConfig.errorMessage,
+          value,
+          formData
+        );
 
-      result.errors.push({ key: unmetValidationKey, errorMessage });
+        result.errors.push({ key: unmetValidationKey, errorMessage });
+      } else {
+        result.errors.push({ key: property });
+      }
     }
   }
 
