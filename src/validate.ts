@@ -65,9 +65,9 @@ export const validate = <T>(
   validation: InputValidationByKey<T>,
   formData: T
 ): ValidationResult => {
-  const result = {
+  const result: ValidationResult = {
     errors: []
-  } as ValidationResult;
+  };
 
   const fieldsToValidate: Array<InputValidationConfig<T>> = [];
 

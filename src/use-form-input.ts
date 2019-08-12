@@ -13,7 +13,7 @@ import { validate } from './validate';
 export const FORMALIZER_ID_DATA_ATTRIBUTE = 'data-formalizer-id';
 
 export interface ValidationResult {
-  errors: { key: string; errorMessage: string }[];
+  errors: Array<{ key: string; errorMessage: string }>;
 }
 
 export const useFormInput = <
@@ -89,7 +89,7 @@ export const useFormInput = <
           validationSettings && validationSettings.reportMultipleErrors === true
         );
 
-        let validationConfig: InputValidationByKey<T> = {};
+        const validationConfig: InputValidationByKey<T> = {};
         for (const v of validationToProcess) {
           // if this is a string the user has just requested a validation by name, such as `isRequired`. Otherwise, user
           // has provided a validation config, so use that.
@@ -115,7 +115,7 @@ export const useFormInput = <
         result = validate(inputValue, validationConfig, currentFormData);
 
         if (result.errors && result.errors.length > 0) {
-          for (let error of result.errors) {
+          for (const error of result.errors) {
             if (error.errorMessage) {
               hasErrors = true;
               setHelperText(error.errorMessage);
@@ -165,7 +165,7 @@ export const useFormInput = <
     }
   );
 
-  const isInputToggleable = <I extends SupportedInputTypes>(type: I) =>
+  const isInputToggleable = (type: SupportedInputTypes) =>
     type === 'checkbox' || type === 'button' || type === 'radio';
 
   // watch for external parent data changes in self

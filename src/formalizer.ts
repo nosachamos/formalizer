@@ -19,9 +19,15 @@ export const FormalizerSettings: FormalizerSettingsType = {
   invalidAttr: { error: true }
 };
 
-export type SingleErrorPerInput = { [key: string]: string };
-export type ErrorByValidatorKey = { [key: string]: string };
-export type MultipleErrorsPerInput = { [key: string]: ErrorByValidatorKey };
+export interface SingleErrorPerInput {
+  [key: string]: string;
+}
+export interface ErrorByValidatorKey {
+  [key: string]: string;
+}
+export interface MultipleErrorsPerInput {
+  [key: string]: ErrorByValidatorKey;
+}
 
 export const GlobalValidators: {
   [key: string]: InputValidationConfig<any> | string;
@@ -57,9 +63,9 @@ export interface InputValidationByKey<T> {
   [key: string]: InputValidationConfig<T> | string;
 }
 
-export type ValidationSettings = {
+export interface ValidationSettings {
   reportMultipleErrors?: boolean;
-};
+}
 
 type InputValidation<T> = InputValidationConfig<T> | string;
 
@@ -192,7 +198,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
       let errorsForInput = errors[name] as ErrorByValidatorKey;
 
       if (!errorsForInput) {
-        errorsForInput = {} as ErrorByValidatorKey;
+        errorsForInput = {};
         errors[name] = errorsForInput;
       }
 
@@ -260,10 +266,10 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
       inputValueAttributeVal,
       invalidAttr,
       name,
-      validationSettings,
-      submitHandler,
       reportError,
-      validation: validationConfigs
+      submitHandler,
+      validation: validationConfigs,
+      validationSettings
     });
 
     if (formRef.current) {
