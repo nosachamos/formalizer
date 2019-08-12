@@ -1,4 +1,4 @@
-import {
+import React, {
   Dispatch,
   FormEvent,
   MutableRefObject,
@@ -8,7 +8,6 @@ import {
   useState
 } from 'react';
 import { FORMALIZER_ID_DATA_ATTRIBUTE, useFormInput } from './use-form-input';
-import * as React from 'react';
 
 interface FormalizerSettingsType {
   invalidAttr?: { [key: string]: any };
@@ -110,7 +109,13 @@ export interface InputAttributes {
   checked?: boolean;
   name: string;
   onKeyPress: (e: React.KeyboardEvent<HTMLDivElement> | KeyboardEvent) => void;
-  onChange: (e: FormEvent<any>) => void;
+  onChange: (
+    e:
+      | React.ChangeEvent<
+          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+        >
+      | FormEvent<any>
+  ) => void;
   onBlur: () => any;
   helperTextObj?: { [key: string]: string };
   invalidAttr?: object;

@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, useEffect, useRef, useState } from 'react';
 import {
   FormInputData,
   FormInputParams,
@@ -185,7 +184,13 @@ export const useFormInput = <
   }, [formValue, value]);
 
   // rewrite self and parent's value
-  const handleChange = (e: FormEvent<any>): void => {
+  const handleChange = (
+    e:
+      | React.ChangeEvent<
+          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+        >
+      | FormEvent<any>
+  ): void => {
     const { checked } = e.currentTarget;
     const inputValue = e.currentTarget.value;
 
