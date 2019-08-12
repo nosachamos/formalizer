@@ -109,7 +109,7 @@ export interface InputAttributes {
   checked?: boolean;
   name: string;
   onKeyPress: (e: KeyboardEvent) => void;
-  onChange: (e: FormEvent<HTMLInputElement>) => any;
+  onChange: <E extends FormEvent<HTMLInputElement>>(e: E) => void;
   onBlur: () => any;
   helperTextObj?: { [key: string]: string };
   invalidAttr?: object;
