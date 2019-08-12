@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
 import {
   FormInputData,
   FormInputParams,
@@ -184,7 +184,7 @@ export const useFormInput = <
   }, [formValue, value]);
 
   // rewrite self and parent's value
-  const handleChange = (e: FormEvent<HTMLInputElement>) => {
+  const handleChange = <E extends FormEvent<HTMLInputElement>>(e: E): void => {
     const { checked } = e.currentTarget;
     const inputValue = e.currentTarget.value;
 
