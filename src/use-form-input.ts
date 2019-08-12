@@ -32,7 +32,7 @@ export const useFormInput = <
   helperTextAttr,
   inputValueAttributeVal,
   validationSettings
-}: FormInputParams<T, I>): FormInputData => {
+}: FormInputParams<T, I>): FormInputData<I> => {
   const [formData, setFormData] = formHandler;
   const formValue = formData[name] as any;
   const [value, setValue] = useState<any>(formValue);
@@ -261,7 +261,7 @@ export const useFormInput = <
     helperTextObj[helperTextAttr] = helperText;
   }
 
-  const inputAttr: InputAttributes = {
+  const inputAttr: InputAttributes<I> = {
     ...(showError && helperTextObj),
     ...(showError && invalidAttr),
     name,
@@ -271,9 +271,12 @@ export const useFormInput = <
     ),
     onChange: handleChange,
     onKeyPress: handleKeyPress,
-    type: inputType,
     [FORMALIZER_ID_DATA_ATTRIBUTE]: inputUniqueIdRef.current
   };
+
+  if (inputType) {
+    inputAttr.type = inputType;
+  }
 
   if (inputType === 'checkbox' || inputType === 'button') {
     inputAttr.checked = typeof value === 'boolean' ? value : false;

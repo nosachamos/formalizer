@@ -82,7 +82,12 @@ export type ValidationErrorReporter = (
   errorMessage: string
 ) => void;
 
-export type SupportedInputTypes = 'text' | 'checkbox' | 'radio' | 'button';
+export type SupportedInputTypes =
+  | 'text'
+  | 'checkbox'
+  | 'radio'
+  | 'button'
+  | undefined;
 
 export interface FormInputParams<T, I> {
   name: string;
@@ -91,7 +96,7 @@ export interface FormInputParams<T, I> {
   clearError: ValidationErrorCleaner;
   reportError: ValidationErrorReporter;
   invalidAttr?: object;
-  inputType: I;
+  inputType?: I;
   inputValueAttributeVal?: string;
   submitHandler?: FormSubmitHandler<T>;
   validation: Array<InputValidation<T>> | string;
@@ -99,12 +104,12 @@ export interface FormInputParams<T, I> {
   validationSettings?: ValidationSettings;
 }
 
-export interface FormInputData {
-  inputAttr: InputAttributes;
+export interface FormInputData<I extends SupportedInputTypes> {
+  inputAttr: InputAttributes<I>;
   runValidations: () => boolean;
 }
 
-export interface InputAttributes {
+export interface InputAttributes<I extends SupportedInputTypes> {
   value?: any;
   checked?: boolean;
   name: string;
@@ -119,7 +124,7 @@ export interface InputAttributes {
   onBlur: () => any;
   helperTextObj?: { [key: string]: string };
   invalidAttr?: object;
-  type: string;
+  type?: I;
   [FORMALIZER_ID_DATA_ATTRIBUTE]: string;
 }
 
@@ -170,7 +175,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
    * There is one special entry for disconnected forms.
    */
   const formInputsMap = useRef<{
-    [key: string]: { [key: string]: FormInputData };
+    [key: string]: { [key: string]: FormInputData<any> };
   }>({});
 
   const DISCONNECTED_FORM_INPUTS = '$$$DISCONNECTED_FORM_INPUTS$$$';
@@ -319,7 +324,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
     name: string,
     validationConfigs?: Array<InputValidation<T>> | string,
     options?: ValidationSettings
-  ) => useInputHandler(name, undefined, validationConfigs, 'button', options);
+  ) => useInputHandler(name, undefined, validationConfigs, undefined, options);
 
   const useRadioInput = (
     name: string,
