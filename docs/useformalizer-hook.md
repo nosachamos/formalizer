@@ -157,14 +157,14 @@ const validations = [
     key: 'mustHaveALetter', // <-- for custom validations, the key attribute is used when reporting errors
     errorMessage: 'Must have at least one letter',
     validator: value => {
-      return value.length > 1 && value.match(/[a-z]/i);
+      return value.length > 0 && value.match(/[a-z]/i);
     }
   },
   {
     // if no key attribute is given, a random one is generated for you and will appear when errors are reported
     errorMessage: 'Must have at least one number',
     validator: value => {
-      return value.length > 1 && value.match(/[0-9]/);
+      return value.length > 0 && value.match(/[0-9]/);
     }
   }
 ];
