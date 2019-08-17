@@ -304,24 +304,17 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
     options?: ValidationSettings
   ) => useInputHandler(name, undefined, validationConfigs, 'text', options);
 
-  const useCheckboxInput = (
-    name: string,
-    validationConfigs?: Array<InputValidation<T>> | string,
-    options?: ValidationSettings
-  ) => useInputHandler(name, undefined, validationConfigs, 'checkbox', options);
+  const useCheckboxInput = (name: string, options?: ValidationSettings) =>
+    useInputHandler(name, undefined, undefined, 'checkbox', options);
 
-  const useToggleInput = (
-    name: string,
-    validationConfigs?: Array<InputValidation<T>> | string,
-    options?: ValidationSettings
-  ) => useInputHandler(name, undefined, validationConfigs, 'button', options);
+  const useToggleInput = (name: string, options?: ValidationSettings) =>
+    useInputHandler(name, undefined, undefined, 'button', options);
 
   const useRadioInput = (
     name: string,
     value: string,
-    validationConfigs?: Array<InputValidation<T>> | string,
     options?: ValidationSettings
-  ) => useInputHandler(name, value, validationConfigs, 'radio', options);
+  ) => useInputHandler(name, value, undefined, 'radio', options);
 
   const formSubmitHandler = (e: Event) => {
     // first validate the form
