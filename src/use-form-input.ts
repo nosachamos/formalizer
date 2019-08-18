@@ -6,7 +6,8 @@ import {
   InputValidationByKey,
   InputValidationConfig,
   isInputValidationConfig,
-  SupportedInputTypes
+  SupportedInputTypes,
+  ValidationSettingsWithTypeOmitted
 } from './formalizer';
 import { validate } from './validate';
 
@@ -32,7 +33,11 @@ export const useFormInput = <
   helperTextAttr,
   inputValueAttributeVal,
   validationSettings
-}: FormInputParams<T, I>): FormInputData<I> => {
+}: FormInputParams<T, I>): FormInputData<
+  typeof validationSettings extends ValidationSettingsWithTypeOmitted
+    ? I
+    : undefined
+> => {
   const [formData, setFormData] = formHandler;
   const formValue = formData[name] as any;
   const [value, setValue] = useState<any>(formValue);
@@ -255,7 +260,11 @@ export const useFormInput = <
     helperTextObj[helperTextAttr] = helperText;
   }
 
-  const inputAttr: InputAttributes<I> = {
+  const inputAttr: InputAttributes<
+    typeof validationSettings extends ValidationSettingsWithTypeOmitted
+      ? I
+      : undefined
+  > = {
     ...(showError && helperTextObj),
     ...(showError && invalidAttr),
     name,
@@ -269,6 +278,7 @@ export const useFormInput = <
   };
 
   if (!validationSettings || validationSettings.omitTypeAttribute !== true) {
+    // @ts-ignore
     inputAttr.type = inputType;
   }
 

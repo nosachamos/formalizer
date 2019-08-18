@@ -68,6 +68,8 @@ export interface ValidationSettings {
   omitTypeAttribute?: boolean;
 }
 
+export type ValidationSettingsWithTypeOmitted = { omitTypeAttribute: true };
+
 type InputValidation<T> = InputValidationConfig<T> | string;
 
 export type ValidationErrorCleaner = (
@@ -100,12 +102,12 @@ export interface FormInputParams<T, I> {
   validationSettings?: ValidationSettings;
 }
 
-export interface FormInputData<I extends SupportedInputTypes> {
+export interface FormInputData<I> {
   inputAttr: InputAttributes<I>;
   runValidations: () => boolean;
 }
 
-export interface InputAttributes<I extends SupportedInputTypes> {
+export interface InputAttributes<I> {
   value?: any;
   checked?: boolean;
   name: string;
@@ -114,7 +116,7 @@ export interface InputAttributes<I extends SupportedInputTypes> {
   onBlur: () => any;
   helperTextObj?: { [key: string]: string };
   invalidAttr?: object;
-  type?: I;
+  type?: I | undefined;
   [FORMALIZER_ID_DATA_ATTRIBUTE]: string;
 }
 
@@ -262,7 +264,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
     inputType: I,
     validationSettings?: ValidationSettings
   ) => {
-    const formInputData = useFormInput<T, typeof inputType>({
+    const formInputData = useFormInput<T, I>({
       clearError,
       formHandler,
       formRef,
@@ -298,22 +300,26 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
     return formInputData.inputAttr;
   };
 
-  const useInput = (
+  const useInput = <V extends ValidationSettings>(
     name: string,
     validationConfigs?: Array<InputValidation<T>> | string,
-    options?: ValidationSettings
+    options?: V
   ) => useInputHandler(name, undefined, validationConfigs, 'text', options);
 
-  const useCheckboxInput = (name: string, options?: ValidationSettings) =>
-    useInputHandler(name, undefined, undefined, 'checkbox', options);
+  const useCheckboxInput = <V extends ValidationSettings>(
+    name: string,
+    options?: V
+  ) => useInputHandler(name, undefined, undefined, 'checkbox', options);
 
-  const useToggleInput = (name: string, options?: ValidationSettings) =>
-    useInputHandler(name, undefined, undefined, 'button', options);
+  const useToggleInput = <V extends ValidationSettings>(
+    name: string,
+    options?: V
+  ) => useInputHandler(name, undefined, undefined, 'button', options);
 
-  const useRadioInput = (
+  const useRadioInput = <V extends ValidationSettings>(
     name: string,
     value: string,
-    options?: ValidationSettings
+    options?: V
   ) => useInputHandler(name, value, undefined, 'radio', options);
 
   const formSubmitHandler = (e: Event) => {
