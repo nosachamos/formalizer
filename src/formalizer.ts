@@ -68,7 +68,9 @@ export interface ValidationSettings {
   omitTypeAttribute?: boolean;
 }
 
-export type ValidationSettingsWithTypeOmitted = { omitTypeAttribute: true };
+export interface ValidationSettingsWithTypeOmitted {
+  omitTypeAttribute: true;
+}
 
 type InputValidation<T> = InputValidationConfig<T> | string;
 
