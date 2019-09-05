@@ -157,10 +157,10 @@ export const useFormInput = <
       if (
         !formRef.current &&
         !hasErrors &&
-        //Object.keys(errors).length === 0, // form itself has no other errors
         inputIsTouched &&
         invokeSubmitHandler
       ) {
+        // has a form handler and there are no errors in the form
         if (submitHandler && Object.keys(errors).length === 0) {
           submitHandler(currentFormData);
         }
