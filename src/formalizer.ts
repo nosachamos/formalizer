@@ -160,7 +160,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
 
   const formRef = useRef(null) as MutableRefObject<HTMLFormElement | null>;
   const { invalidAttr, helperTextAttr } = settings
-    ? settings
+    ? { ...FormalizerSettings, ...settings }
     : FormalizerSettings;
 
   const formHandler = useState<T>(initialValues ? initialValues : ({} as any));
