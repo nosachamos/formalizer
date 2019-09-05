@@ -94,6 +94,7 @@ export type SupportedInputTypes = 'text' | 'checkbox' | 'radio' | 'button';
 
 export interface FormInputParams<T, I> {
   name: string;
+  errors: SingleErrorPerInput | MultipleErrorsPerInput;
   formHandler: [T, Dispatch<SetStateAction<T>>];
   formRef: MutableRefObject<HTMLFormElement | null>;
   clearError: ValidationErrorCleaner;
@@ -273,6 +274,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
   ) => {
     const formInputData = useFormInput<T, I>({
       clearError,
+      errors,
       formHandler,
       formRef,
       helperTextAttr,

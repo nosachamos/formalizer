@@ -22,6 +22,7 @@ export const useFormInput = <
   I extends SupportedInputTypes
 >({
   name,
+  errors,
   formHandler,
   formRef,
   validation = [],
@@ -156,10 +157,11 @@ export const useFormInput = <
       if (
         !formRef.current &&
         !hasErrors &&
+        //Object.keys(errors).length === 0, // form itself has no other errors
         inputIsTouched &&
         invokeSubmitHandler
       ) {
-        if (submitHandler) {
+        if (submitHandler && Object.keys(errors).length === 0) {
           submitHandler(currentFormData);
         }
       }

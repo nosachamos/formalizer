@@ -142,7 +142,7 @@
     },
     "clearMocks": true,
     "testEnvironment": "jsdom",
-    "testRegex": "(\\.(test|spec))\\.(js|jsx)$",
+    "testRegex": "disconnected-form.spec.jsx$",
     "moduleFileExtensions": [
       "ts",
       "tsx",
