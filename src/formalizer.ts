@@ -37,13 +37,16 @@ export const GlobalValidators: {
 
 export const DEFAULT_VALIDATION_ERROR_MESSAGE = 'This field is not valid.';
 
-export type ValidatorFunction<T> = (value: any, options: Options<T>) => boolean;
+export type ValidatorFunction<T> = (
+  value: any,
+  options: ValidatorFunctionOptions<T>
+) => boolean;
 
 export interface InputValidationConfig<T> {
   key?: string;
   errorMessage?: string | ErrorMessageFunction<T>;
   negate?: boolean;
-  options?: Options<T>;
+  options?: InputValidationOptions;
   validator?: ValidatorFunction<T> | string;
 }
 
@@ -122,9 +125,11 @@ export interface InputAttributes<I> {
   [FORMALIZER_ID_DATA_ATTRIBUTE]: string;
 }
 
-export interface Options<T> {
+export interface InputValidationOptions {
   [key: string]: any;
+}
 
+export interface ValidatorFunctionOptions<T> extends InputValidationOptions {
   formData: T;
 }
 

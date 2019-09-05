@@ -4,7 +4,8 @@ import {
   GlobalValidators,
   InputValidationByKey,
   InputValidationConfig,
-  ValidatorFunction
+  ValidatorFunction,
+  ValidatorFunctionOptions
 } from './formalizer';
 import { ValidationResult } from './use-form-input';
 
@@ -129,7 +130,7 @@ export const validate = <T>(
         options =
           propValidator.options === void 0
             ? { formData }
-            : propValidator.options;
+            : (propValidator.options as ValidatorFunctionOptions<T>);
       }
     } else {
       const valConfig = validation[property] as InputValidationConfig<T>;
@@ -193,7 +194,10 @@ export const validate = <T>(
 
       default:
         if (typeof configs.validator === 'function') {
-          isValid = configs.validator(value, configs.options);
+          isValid = configs.validator(
+            value,
+            configs.options as ValidatorFunctionOptions<T>
+          );
         } else {
           throw new Error(
             `Formalizer: cannot find a validator named "${property}". If you are attempting to perform a validation defined ` +
