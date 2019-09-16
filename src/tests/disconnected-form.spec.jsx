@@ -117,7 +117,7 @@ describe('Disconnected form validation', () => {
     // select a different radio button
     act(() => {
       wrapper.find('[type="radio"][value="a"]').prop('onChange')({
-        currentTarget: { value: 'a' }
+        target: { value: 'a' }
       });
     });
 
@@ -373,7 +373,7 @@ describe('Disconnected form validation', () => {
     // select a different radio button
     act(() => {
       wrapper.find('[type="radio"][value="a"]').prop('onChange')({
-        currentTarget: { value: 'a' }
+        target: { value: 'a' }
       });
     });
     wrapper.update();
@@ -381,7 +381,7 @@ describe('Disconnected form validation', () => {
     // this blur event will not result in one more call to the submit handler mock function
     act(() => {
       wrapper.find('[type="radio"][value="a"]').prop('onBlur')({
-        currentTarget: { value: 'a' }
+        target: { value: 'a' }
       });
     });
     wrapper.update();
@@ -400,7 +400,7 @@ describe('Disconnected form validation', () => {
     // toggling the checkbox also results in a call to the submit handler
     act(() => {
       wrapper.find('[type="checkbox"]').prop('onChange')({
-        currentTarget: { type: 'checkbox', checked: true }
+        target: { type: 'checkbox', checked: true }
       });
     });
     wrapper.update();
@@ -408,7 +408,7 @@ describe('Disconnected form validation', () => {
     // this blur event will not result in one more call to the submit handler mock function
     act(() => {
       wrapper.find('[type="checkbox"]').prop('onBlur')({
-        currentTarget: { type: 'checkbox', checked: true }
+        target: { type: 'checkbox', checked: true }
       });
     });
     wrapper.update();
@@ -427,7 +427,7 @@ describe('Disconnected form validation', () => {
     // toggling the toggle button also results in a call to the submit handler
     act(() => {
       wrapper.find('[type="button"]').prop('onChange')({
-        currentTarget: { type: 'button', checked: true }
+        target: { type: 'button', checked: true }
       });
     });
     wrapper.update();
@@ -435,7 +435,7 @@ describe('Disconnected form validation', () => {
     // this blur event will not result in one more call to the submit handler mock function
     act(() => {
       wrapper.find('[type="button"]').prop('onBlur')({
-        currentTarget: { type: 'button', checked: true }
+        target: { type: 'button', checked: true }
       });
     });
     wrapper.update();
@@ -519,7 +519,7 @@ describe('Disconnected form validation', () => {
     // toggling the checkbox also results in a call to the submit handler
     act(() => {
       wrapper.find('[type="checkbox"]').prop('onChange')({
-        currentTarget: { type: 'checkbox', checked: true }
+        target: { type: 'checkbox', checked: true }
       });
     });
     wrapper.update();
@@ -539,7 +539,7 @@ describe('Disconnected form validation', () => {
     // toggling the toggle button also results in a call to the submit handler
     act(() => {
       wrapper.find('[type="button"]').prop('onChange')({
-        currentTarget: { type: 'button', checked: true }
+        target: { type: 'button', checked: true }
       });
     });
     wrapper.update();

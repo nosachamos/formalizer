@@ -194,8 +194,8 @@ export const useFormInput = <
 
   // rewrite self and parent's value
   const handleChange = (e: React.ChangeEvent<any> | FormEvent<any>): void => {
-    const { checked } = e.currentTarget;
-    const inputValue = e.currentTarget.value;
+    const { checked } = e.target;
+    const inputValue = e.target.value;
 
     const newValue =
       inputType === 'checkbox' || inputType === 'button' ? checked : inputValue;
