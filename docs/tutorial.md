@@ -139,7 +139,7 @@ The last thing left to do, is display the validation errors when they occur.
 
 Next, we want to make sure the value selected by the user on the checkbox and set of radio buttons is included in the form data we send to the server.
 
-To accomplish, all we need is to add the two other input hooks supported by Formalizer: `useCheckboxInput` and `useRadioInput`. Note that the input type is not longer needed since they are implied when using these hooks. Also, for radio buttons, we will supply the value for each radio input as the second argument of the `useRadioInput` hook, so we don't need those attributes anymore either.
+To accomplish, all we need is to add the two other input hooks supported by Formalizer: `useCheckboxInput` and `useRadioInput`. Note that the input type is no longer needed since they are implied when using these hooks. Also, for radio buttons, we will supply the value for each radio input as the second argument of the `useRadioInput` hook, so we don't need those attributes anymore either.
 
 ```jsx
 const { formRef, useInput, useCheckboxInput, useRadioInput } = useFormalizer();
