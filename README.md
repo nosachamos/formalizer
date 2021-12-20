@@ -19,7 +19,7 @@ Formalizer is a React Hooks based form validation library made for humans. The c
 
 Hi everyone, I have been sidetracked a bit lately but I will continue to updat and improve this library. I wrote it for myself, and to this day I have not found an easier one to use. It is lacking some important features suc has the ability to ignore fields at times, SSR support with NextJS, etc. I will add them in the coming weeks.
 
-I hope you're having a good time using it. And don't forget life's short, make it count! <3
+I hope you're having a good time using it. And don't forget life's short, make it count! ❤
 
 
 # Installation
