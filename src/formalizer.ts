@@ -252,8 +252,10 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
         formInputsMap.current[DISCONNECTED_FORM_INPUTS];
 
       // trigger validation on each of the form's inputs
-      const allInputsValid = Object.keys(formInputsByUniqueId).every(
-        inputUniqueId => formInputsByUniqueId[inputUniqueId].runValidations()
+      const allInputsValid = Object.keys(
+        formInputsByUniqueId
+      ).every(inputUniqueId =>
+        formInputsByUniqueId[inputUniqueId].runValidations()
       );
 
       // now we need to trigger the submit handler if there are no errors
