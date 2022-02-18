@@ -139,11 +139,38 @@ export function setupForMaterialUI(): void {
   FormalizerSettings.helperTextAttr = 'helperText';
 }
 
+interface Formalizer<T> {
+  errors: SingleErrorPerInput | MultipleErrorsPerInput;
+  formRef: React.MutableRefObject<HTMLFormElement | null>;
+  formValues: T;
+  isValid: boolean;
+  performValidations: () => boolean;
+  setValues: (formValues: T) => void;
+  useCheckboxInput: <V extends ValidationSettings>(
+    name: string,
+    options?: V | undefined
+  ) => InputAttributes<undefined>;
+  useInput: <V extends ValidationSettings>(
+    name: string,
+    validationConfigs?: string | Array<InputValidation<T>> | undefined,
+    options?: V | undefined
+  ) => InputAttributes<undefined>;
+  useRadioInput: <V extends ValidationSettings>(
+    name: string,
+    value: string,
+    options?: V | undefined
+  ) => InputAttributes<undefined>;
+  useToggleInput: <V extends ValidationSettings>(
+    name: string,
+    options?: V | undefined
+  ) => InputAttributes<undefined>;
+}
+
 export const useFormalizer = <T extends { [key: string]: any } = {}>(
   submitHandler?: FormSubmitHandler<T>,
   initialValues?: T,
   settings?: FormalizerSettingsType
-) => {
+): Formalizer<T> => {
   // some basic validations
   if (!!submitHandler && typeof submitHandler !== 'function') {
     throw new Error(
@@ -171,7 +198,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
   const [mounted, setMounted] = useState(false);
 
   /**
-   * Map of form inputs by input name. When we have a connected forms, there is an entry per form.
+   * Map of form inputs by input name. When we have a connected form, there is an entry per form.
    * There is one special entry for disconnected forms.
    */
   const formInputsMap = useRef<{
