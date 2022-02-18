@@ -84,7 +84,7 @@ We follow the "fork-and-pull" Git workflow.
 
    In your local clone, modify the code and commit them to your local clone using the git commit command.
 
-   Run `npm test` and make sure all tests still pass.
+   Run `yarn test` and make sure all tests still pass.
 
    Run `tslint --project .` and make sure you get no warnings.
 
