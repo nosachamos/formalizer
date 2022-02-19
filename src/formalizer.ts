@@ -139,7 +139,7 @@ export function setupForMaterialUI(): void {
   FormalizerSettings.helperTextAttr = 'helperText';
 }
 
-interface Formalizer<T> {
+export interface Formalizer<T> {
   errors: SingleErrorPerInput | MultipleErrorsPerInput;
   formRef: React.MutableRefObject<HTMLFormElement | null>;
   formValues: T;
