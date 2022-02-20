@@ -17,8 +17,17 @@ export interface ValidationResult {
   errors: Array<{ key: string; errorMessage?: string }>;
 }
 
+const isInputToggleable = (type: SupportedInputTypes) =>
+  type === 'checkbox' ||
+  type === 'button' || // toggle buttons
+  type === 'radio';
+
+interface FormDataIndex {
+  [key: string]: string | boolean;
+}
+
 export const useFormInput = <
-  T extends { [key: string]: string | boolean },
+  T extends FormDataIndex,
   I extends SupportedInputTypes
 >({
   name,
@@ -39,8 +48,16 @@ export const useFormInput = <
     ? I
     : undefined
 > => {
+  // we set default initial values for the inputs when they are missing. This allows users to skip creating dummy
+  // initial values for their forms.
   const [formData, setFormData] = formHandler;
+  if (formData[name] === undefined) {
+    (formData as FormDataIndex)[name] = isInputToggleable(inputType)
+      ? false
+      : '';
+  }
   const formValue = formData[name] as any;
+
   const [value, setValue] = useState<any>(formValue);
   const [isValid, setIsValid] = useState(true);
   const [isTouched, setIsTouched] = useState(false);
@@ -171,11 +188,6 @@ export const useFormInput = <
       return !hasErrors;
     }
   );
-
-  const isInputToggleable = (type: SupportedInputTypes) =>
-    type === 'checkbox' ||
-    type === 'button' || // toggle buttons
-    type === 'radio';
 
   // watch for external parent data changes in self
   useEffect(() => {
