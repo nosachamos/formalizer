@@ -34,9 +34,9 @@ We need to negate it, so it ensures the field is not empty. And we need to set t
 
 ```jsx
 const notBlank = {
-    validator: 'isEmpty' // <-- reference to te third party validator
-    options: { ignore_whitespaces: true }, // options that will be applied to the validator
-    negate: true // we want it to pass when the isEmpty validation fails, so negate that validator
+    validator: 'isEmpty',  // <-- reference to te third party validator
+    options: { ignore_whitespaces: true },  // options that will be applied to the validator
+    negate: true  // we want it to pass when the isEmpty validation fails, so negate that validator
 }
 ```
 
