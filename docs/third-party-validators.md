@@ -5,7 +5,7 @@ Formalizer integrates with the awesome [validation](https://www.npmjs.com/packag
 Start by installing it:
 
 ```sh
-yearn add validator
+yarn add validator
 ```
 
 or
