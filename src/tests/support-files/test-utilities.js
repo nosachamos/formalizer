@@ -50,38 +50,62 @@ export const buildDisconnectedForm = (
   validationSettings
 ) => (
   <>
-    <input
-      data-test={'field1-input'}
-      name="field1"
-      {...formInfo.useInput('field1', field1Validation, validationSettings)}
-    />
-    <span id="field1Error">{formInfo.errors['field1']}</span>
-    <input
-      data-test={'field2-input'}
-      name="field2"
-      {...formInfo.useInput('field2', field2Validation, validationSettings)}
-    />
-    <span id="field2Error">{formInfo.errors['field2']}</span>
-    <input
-      data-test={'checkbox-input'}
-      {...formInfo.useCheckboxInput('checkboxField', validationSettings)}
-    />
-    <input
-      data-test={'toggle-input'}
-      {...formInfo.useToggleInput('toggleField', validationSettings)}
-    />
-    <input
-      data-test={'radio-input-a'}
-      {...formInfo.useRadioInput('radioField', 'a', validationSettings)}
-    />
-    <input
-      data-test={'radio-input-b'}
-      {...formInfo.useRadioInput('radioField', 'b', validationSettings)}
-    />
-    <input
-      data-test={'radio-input-c'}
-      {...formInfo.useRadioInput('radioField', 'c', validationSettings)}
-    />
+    {formInfo.formValues['field1'] !== undefined && (
+      <>
+        <input
+          data-test={'field1-input'}
+          name="field1"
+          {...formInfo.useInput('field1', field1Validation, validationSettings)}
+        />
+        <span id="field1Error">{formInfo.errors['field1']}</span>
+      </>
+    )}
+
+    {formInfo.formValues['field2'] !== undefined && (
+      <>
+        <input
+          data-test={'field2-input'}
+          name="field2"
+          {...formInfo.useInput('field2', field2Validation, validationSettings)}
+        />
+        <span id="field2Error">{formInfo.errors['field2']}</span>
+      </>
+    )}
+
+    {formInfo.formValues['checkboxField'] !== undefined && (
+      <input
+        data-test={'checkbox-input'}
+        {...formInfo.useCheckboxInput('checkboxField', validationSettings)}
+      />
+    )}
+
+    {formInfo.formValues['toggleField'] !== undefined && (
+      <input
+        data-test={'toggle-input'}
+        {...formInfo.useToggleInput('toggleField', validationSettings)}
+      />
+    )}
+
+    {formInfo.formValues['radioField'] !== undefined && (
+      <input
+        data-test={'radio-input-a'}
+        {...formInfo.useRadioInput('radioField', 'a', validationSettings)}
+      />
+    )}
+
+    {formInfo.formValues['radioField'] !== undefined && (
+      <input
+        data-test={'radio-input-b'}
+        {...formInfo.useRadioInput('radioField', 'b', validationSettings)}
+      />
+    )}
+
+    {formInfo.formValues['radioField'] !== undefined && (
+      <input
+        data-test={'radio-input-c'}
+        {...formInfo.useRadioInput('radioField', 'c', validationSettings)}
+      />
+    )}
   </>
 );
 

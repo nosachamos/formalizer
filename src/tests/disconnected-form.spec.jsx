@@ -195,7 +195,9 @@ describe('Disconnected form validation', () => {
       formInfo = useFormalizer(null, {
         field1: '',
         field2: '',
-        toggleField: true
+        toggleField: true,
+        checkboxField: true,
+        radioField: true
       });
 
       return buildDisconnectedForm(formInfo, undefined, undefined, {
@@ -302,7 +304,6 @@ describe('Disconnected form validation', () => {
         field2: '',
         checkboxField: false
       });
-
       return buildDisconnectedForm(formInfo, 'isEmail', undefined);
     };
 
