@@ -166,7 +166,10 @@ export interface Formalizer<T> {
   ) => InputAttributes<undefined>;
 }
 
-export const useFormalizer = <T extends { [key: string]: any }, N extends T>(
+export const useFormalizer = <
+  T extends { [key: string]: any },
+  N extends Partial<T>
+>(
   submitHandler?: FormSubmitHandler<T>,
   initialValues?: N,
   settings?: FormalizerSettingsType
@@ -290,7 +293,7 @@ export const useFormalizer = <T extends { [key: string]: any }, N extends T>(
         // first, remove the values that are not part of any known inputs as they may have been set by the initial
         // values given to Formalizer. The form values we submit to the submit handler should only contain data
         // for the form inputs.
-        const submitHandlerValues: Partial<T> = {};
+        const submitHandlerValues = {};
         Object.values(formInputsByUniqueId).forEach(inputData => {
           (submitHandlerValues as any)[inputData.inputAttr.name] =
             values[inputData.inputAttr.name];
@@ -378,13 +381,19 @@ export const useFormalizer = <T extends { [key: string]: any }, N extends T>(
           // first, remove the values that are not part of any known inputs as they may have been set by the initial
           // values given to Formalizer. The form values we submit to the submit handler should only contain data
           // for the form inputs.
-          const submitHandlerValues: Partial<T> = {};
-          Object.values(formInputsMap).forEach(inputData => {
-            (submitHandlerValues as any)[inputData.inputAttr.name] =
-              values[inputData.inputAttr.name];
-          });
+          const submitHandlerValues = {};
+          Object.values(formInputsMap).forEach(
+            (inputGroup: { [key: string]: FormInputData<any> }) => {
+              Object.values(inputGroup).forEach(inputGroupIndex => {
+                Object.values(inputGroupIndex).forEach(inputData => {
+                  (submitHandlerValues as any)[inputData.inputAttr.name] =
+                    values[inputData.inputAttr.name];
+                });
+              });
+            }
+          );
 
-          submitHandler(values, e);
+          submitHandler(submitHandlerValues as T, e);
         } else {
           // by default, we don't submit the form. If the user wants the native submission behavior, they must
           // provide a submit handler.
