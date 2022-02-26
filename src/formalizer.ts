@@ -58,7 +58,7 @@ export const isInputValidationConfig = <T>(
   (typeof value.validator === 'string' ||
     typeof value.validator === 'function');
 
-type FormSubmitHandler<T> = (formValues: Partial<T>, e?: Event) => void;
+type FormSubmitHandler<T> = (formValues: T, e?: Event) => void;
 
 export type ErrorMessageFunction<T> = (value: string, formData: T) => string;
 
@@ -166,9 +166,9 @@ export interface Formalizer<T> {
   ) => InputAttributes<undefined>;
 }
 
-export const useFormalizer = <T extends { [key: string]: any } = {}>(
+export const useFormalizer = <T extends { [key: string]: any }, N extends T>(
   submitHandler?: FormSubmitHandler<T>,
-  initialValues?: T,
+  initialValues?: N,
   settings?: FormalizerSettingsType
 ): Formalizer<T> => {
   // some basic validations
@@ -296,7 +296,7 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
             values[inputData.inputAttr.name];
         });
 
-        submitHandler(submitHandlerValues);
+        submitHandler(submitHandlerValues as T);
       }
     }
 
