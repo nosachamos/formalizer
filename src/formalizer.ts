@@ -58,7 +58,7 @@ export const isInputValidationConfig = <T>(
   (typeof value.validator === 'string' ||
     typeof value.validator === 'function');
 
-type FormSubmitHandler<T> = (formValues: T, e?: Event) => void;
+type FormSubmitHandler<T> = (formValues: Partial<T>, e?: Event) => void;
 
 export type ErrorMessageFunction<T> = (value: string, formData: T) => string;
 
@@ -287,7 +287,16 @@ export const useFormalizer = <T extends { [key: string]: any } = {}>(
 
       // now we need to trigger the submit handler if there are no errors
       if (allInputsValid && submitHandler) {
-        submitHandler(values);
+        // first, remove the values that are not part of any known inputs as they may have been set by the initial
+        // values given to Formalizer. The form values we submit to the submit handler should only contain data
+        // for the form inputs.
+        const submitHandlerValues: Partial<T> = {};
+        Object.values(formInputsByUniqueId).forEach(inputData => {
+          (submitHandlerValues as any)[inputData.inputAttr.name] =
+            values[inputData.inputAttr.name];
+        });
+
+        submitHandler(submitHandlerValues);
       }
     }
 
