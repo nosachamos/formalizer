@@ -375,6 +375,15 @@ export const useFormalizer = <T extends { [key: string]: any }, N extends T>(
       try {
         // since the form is valid, delegate to the user-provided submit handler, if one was given to us
         if (submitHandler) {
+          // first, remove the values that are not part of any known inputs as they may have been set by the initial
+          // values given to Formalizer. The form values we submit to the submit handler should only contain data
+          // for the form inputs.
+          const submitHandlerValues: Partial<T> = {};
+          Object.values(formInputsMap).forEach(inputData => {
+            (submitHandlerValues as any)[inputData.inputAttr.name] =
+              values[inputData.inputAttr.name];
+          });
+
           submitHandler(values, e);
         } else {
           // by default, we don't submit the form. If the user wants the native submission behavior, they must
