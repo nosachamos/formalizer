@@ -12,11 +12,13 @@ import { FORMALIZER_ID_DATA_ATTRIBUTE, useFormInput } from './use-form-input';
 interface FormalizerSettingsType {
   invalidAttr?: { [key: string]: any };
   helperTextAttr?: string;
+  keepUnknownAttributes?: boolean;
 }
 
 export const FormalizerSettings: FormalizerSettingsType = {
   helperTextAttr: undefined,
-  invalidAttr: { error: true }
+  invalidAttr: { error: true },
+  keepUnknownAttributes: false
 };
 
 export interface SingleErrorPerInput {
@@ -293,12 +295,20 @@ export const useFormalizer = <
         // first, remove the values that are not part of any known inputs as they may have been set by the initial
         // values given to Formalizer. The form values we submit to the submit handler should only contain data
         // for the form inputs.
-        const submitHandlerValues = {};
-        Object.values(formInputsByUniqueId).forEach(inputData => {
-          (submitHandlerValues as any)[inputData.inputAttr.name] =
-            values[inputData.inputAttr.name];
-        });
+        const knownAttrValues = () => {
+          const filteredValues: { [key: string]: any } = {};
 
+          Object.values(formInputsByUniqueId).forEach(inputData => {
+            filteredValues[inputData.inputAttr.name] =
+              values[inputData.inputAttr.name];
+          });
+
+          return filteredValues;
+        };
+
+        const submitHandlerValues = settings?.keepUnknownAttributes
+          ? values
+          : knownAttrValues();
         submitHandler(submitHandlerValues as T);
       }
     }
@@ -381,18 +391,25 @@ export const useFormalizer = <
           // first, remove the values that are not part of any known inputs as they may have been set by the initial
           // values given to Formalizer. The form values we submit to the submit handler should only contain data
           // for the form inputs.
-          const submitHandlerValues = {};
-          Object.values(formInputsMap).forEach(
-            (inputGroup: { [key: string]: FormInputData<any> }) => {
-              Object.values(inputGroup).forEach(inputGroupIndex => {
-                Object.values(inputGroupIndex).forEach(inputData => {
-                  (submitHandlerValues as any)[inputData.inputAttr.name] =
-                    values[inputData.inputAttr.name];
+          const knownAttrValues = () => {
+            const filteredValues: { [key: string]: any } = {};
+            Object.values(formInputsMap).forEach(
+              (inputGroup: { [key: string]: FormInputData<any> }) => {
+                Object.values(inputGroup).forEach(inputGroupIndex => {
+                  Object.values(inputGroupIndex).forEach(inputData => {
+                    filteredValues[inputData.inputAttr.name] =
+                      values[inputData.inputAttr.name];
+                  });
                 });
-              });
-            }
-          );
+              }
+            );
 
+            return filteredValues;
+          };
+
+          const submitHandlerValues = settings?.keepUnknownAttributes
+            ? values
+            : knownAttrValues();
           submitHandler(submitHandlerValues as T, e);
         } else {
           // by default, we don't submit the form. If the user wants the native submission behavior, they must
