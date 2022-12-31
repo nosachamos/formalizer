@@ -42,7 +42,7 @@ export const DEFAULT_VALIDATION_ERROR_MESSAGE = 'This field is not valid.';
 export type ValidatorFunction<T> = (
   value: any,
   options: ValidatorFunctionOptions<T>
-) => boolean;
+) => string | boolean | undefined;
 
 export interface InputValidationConfig<T> {
   key?: string;

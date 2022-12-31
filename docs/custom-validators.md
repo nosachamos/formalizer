@@ -73,6 +73,19 @@ As you can see above, the message will change as the user types new values.
 
 If none is provided, a generic error message is used instead. You can access this generic message by importing the `DEFAULT_VALIDATION_ERROR_MESSAGE` constant.
 
+Alternatively, you can omit the errorMessage property entirely and just return an error message directly from the validator function:
+
+```jsx
+const validateEmail = {
+  validator: () => {
+    if (value?.toLowerCase().indexOf('z') === -1) {
+      return 'Must contain the letter z';
+    }
+    return undefined;
+  }
+};
+```
+
 ### negate
 
 A boolean flag that indicates whether the validator should be negated.

@@ -175,6 +175,7 @@ export const validate = <T>(
 
   for (const validationConfig of fieldsToValidate) {
     let isValid = true;
+    let validationResult;
     const property = validationConfig.key;
 
     const configs: InputValidationConfig<T> = validationConfig;
@@ -194,10 +195,16 @@ export const validate = <T>(
 
       default:
         if (typeof configs.validator === 'function') {
-          isValid = configs.validator(
+          validationResult = configs.validator(
             value,
             configs.options as ValidatorFunctionOptions<T>
           );
+
+          if (typeof validationResult === 'boolean') {
+            isValid = validationResult;
+          } else if (typeof validationResult === 'string') {
+            isValid = false;
+          }
         } else {
           throw new Error(
             `Formalizer: cannot find a validator named "${property}". If you are attempting to perform a validation defined ` +
@@ -213,11 +220,10 @@ export const validate = <T>(
     if (property) {
       if (!isValid) {
         unmetValidationKey = property;
-        errorMessage = getErrorMessage(
-          validationConfig.errorMessage,
-          value,
-          formData
-        );
+        errorMessage =
+          typeof validationResult === 'string'
+            ? validationResult
+            : getErrorMessage(validationConfig.errorMessage, value, formData);
 
         result.errors.push({ key: unmetValidationKey, errorMessage });
       } else {
